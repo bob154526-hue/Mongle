@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Portal</title>
+    <style>
+        :root { --bg: #0d1117; --accent: #58a6ff; --text: #c9d1d9; }
+        body { background: var(--bg); color: var(--text); font-family: sans-serif; text-align: center; padding: 50px; }
+        .hidden { display: none; }
+        .admin-box { background: #161b22; padding: 30px; border-radius: 15px; border: 1px solid #30363d; display: inline-block; }
+        input { padding: 10px; margin: 10px; border-radius: 5px; border: 1px solid #30363d; background: #0b0f1a; color: white; }
+        .btn { background: var(--accent); color: black; border: none; padding: 10px 20px; cursor: pointer; border-radius: 5px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div id="lockScreen">
+        <h1>🔒 Restricted Area</h1>
+        <input type="password" id="passInput" placeholder="Enter Admin Password">
+        <button class="btn" onclick="checkPass()">Unlock</button>
+    </div>
+
+    <div id="adminContent" class="hidden">
+        <h1>Admin Dashboard</h1>
+        <div class="admin-box">
+            <h3>📈 Visitor Analytics</h3>
+            <img src="https://count.getloli.com/get/@bob-mongle-arcade?theme=moebooru">
+            
+            <hr style="border: 0.5px solid #30363d; margin: 20px 0;">
+            
+            <h3>✨ Custom Icons</h3>
+            <input type="text" id="fileIn" placeholder="Filename.html"><br>
+            <input type="text" id="emojiIn" placeholder="Emoji (🤖)"><br>
+            <button class="btn" onclick="saveIcon()">Save Icon</button>
+        </div>
+        <br><br>
+        <a href="index.html" style="color:var(--accent)">← Exit Admin Mode</a>
+    </div>
+
+    <script>
+        // CHANGE YOUR PASSWORD HERE
+        const ADMIN_PASSWORD = "1234"; 
+
+        function checkPass() {
+            const input = document.getElementById('passInput').value;
+            if (input === ADMIN_PASSWORD) {
+                document.getElementById('lockScreen').classList.add('hidden');
+                document.getElementById('adminContent').classList.remove('hidden');
+            } else {
+                alert("Incorrect Password");
+            }
+        }
+
+        function saveIcon() {
+            let icons = JSON.parse(localStorage.getItem('mongleIcons')) || {};
+            icons[document.getElementById('fileIn').value] = document.getElementById('emojiIn').value;
+            localStorage.setItem('mongleIcons', JSON.stringify(icons));
+            alert("Icon Saved!");
+        }
+    </script>
+</body>
+</html>
