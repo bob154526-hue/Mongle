@@ -5,34 +5,47 @@
     <style>
         body { background: #020617; color: white; font-family: sans-serif; padding: 40px; }
         .box { background: #0f172a; border: 1px solid #1e293b; padding: 25px; border-radius: 15px; max-width: 500px; margin: auto; margin-bottom: 20px; }
-        .btn { padding: 12px; background: #3b82f6; border: none; color: white; width: 100%; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; }
-        input { width: 90%; padding: 10px; margin: 10px 0; background: #000; border: 1px solid #333; color: white; border-radius: 5px; }
+        input { width: 90%; padding: 10px; margin: 10px 0; background: #000; color: white; border: 1px solid #333; border-radius: 8px; }
+        .btn { width: 100%; padding: 12px; background: #3b82f6; border: none; color: white; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+        .admin-box { display: none; border: 2px solid #ef4444; }
     </style>
 </head>
 <body>
+
     <div class="box">
-        <h3>Arcade Customization</h3>
-        <input type="text" id="bgIn" placeholder="Wallpaper URL...">
-        <button class="btn" onclick="localStorage.setItem('mBG', document.getElementById('bgIn').value); alert('Saved!')">Change Background</button>
+        <h3>Viewer Settings</h3>
+        <p>Custom Background URL:</p>
+        <input type="text" id="bgIn">
+        <button class="btn" onclick="localStorage.setItem('mBG', document.getElementById('bgIn').value); alert('Background Applied!')">Save Wallpaper</button>
         
-        <hr style="opacity:0.1; margin: 20px 0;">
-        
-        <h3>Support</h3>
-        <p>Want a specific game? Send a request!</p>
-        <button class="btn" style="background:#10b981" onclick="window.open('https://forms.gle/YOUR_FORM_HERE', '_blank')">🚀 Request a Game</button>
+        <p style="margin-top:20px;">Panic Keyboard Key (e.g., ], p, or Escape):</p>
+        <input type="text" id="keyIn" maxlength="10">
+        <button class="btn" onclick="localStorage.setItem('mPanicKey', document.getElementById('keyIn').value); alert('Key Set!')">Set Panic Key</button>
+
+        <hr style="opacity:0.1; margin:20px 0;">
+        <button class="btn" style="background:#10b981" onclick="window.open('https://docs.google.com/forms/YOUR_FORM_ID', '_blank')">🚀 Request a Game</button>
     </div>
 
-    <div id="adminPanel" class="box" style="display:none; border: 2px solid #ef4444;">
-        <h3 style="color:#ef4444">Admin Dashboard</h3>
-        <input type="text" id="emoIn" placeholder="Change Global Emoji (e.g. 🔥)">
-        <button class="btn" onclick="localStorage.setItem('mEmoji', document.getElementById('emoIn').value); alert('Updated!')">Apply Emoji</button>
-        <button class="btn" style="background:#ef4444; margin-top:20px;" onclick="localStorage.clear(); sessionStorage.clear(); location.href='index.html'">🔥 WIPE EVERYTHING</button>
+    <div id="adminPanel" class="box admin-box">
+        <h3 style="color:#ef4444">🛡️ ADMIN PANEL</h3>
+        <p>Set Global Panic URL:</p>
+        <input type="text" id="pUrlIn" placeholder="https://google.com">
+        <button class="btn" onclick="localStorage.setItem('mPanicUrl', document.getElementById('pUrlIn').value); alert('Global Panic Set!')">Apply Panic URL</button>
+        
+        <p style="margin-top:20px;">Change Global Emoji:</p>
+        <input type="text" id="emoIn" placeholder="🔥">
+        <button class="btn" onclick="localStorage.setItem('mEmoji', document.getElementById('emoIn').value); alert('Emoji Changed!')">Apply Global Emoji</button>
+
+        <button class="btn" style="background:#ef4444; margin-top:30px;" onclick="localStorage.clear(); sessionStorage.clear(); location.href='index.html'">🔥 MASTER FACTORY RESET</button>
     </div>
 
-    <p style="text-align:center;"><a href="index.html" style="color:#3b82f6">← Back Home</a></p>
+    <p style="text-align:center;"><a href="index.html" style="color:#3b82f6; text-decoration:none;">← Back to Home</a></p>
 
     <script>
-        if(sessionStorage.getItem('mAuth') === 'mongle') document.getElementById('adminPanel').style.display='block';
+        // Check if user is Mongle
+        if(sessionStorage.getItem('mAuth') === 'mongle') {
+            document.getElementById('adminPanel').style.display = 'block';
+        }
     </script>
 </body>
 </html>
