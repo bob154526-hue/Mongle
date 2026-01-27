@@ -8,6 +8,9 @@
         :root { --primary: #00ff41; --bg: #000500; --card: rgba(0, 20, 0, 0.9); --accent: #003b00; --hacked: #ff0000; }
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: var(--bg); color: var(--primary); font-family: 'Courier New', monospace; overflow: hidden; }
 
+        /* VERSION TAG */
+        #versionTag { position: fixed; bottom: 10px; left: 10px; font-size: 10px; color: #004400; z-index: 10000; }
+
         /* LOCKDOWN WHITE SCREEN */
         #lockdownScreen { position: fixed; inset: 0; background: white; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; color: black; }
         
@@ -21,7 +24,6 @@
         .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; background: rgba(0,0,0,0.9); border-bottom: 1px solid var(--primary); z-index: 100; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px; padding: 30px; height: calc(100vh - 100px); overflow-y: auto; }
         
-        .category-header { grid-column: 1 / -1; color: gold; border-bottom: 1px solid var(--accent); margin-top: 30px; padding: 10px 0; text-transform: uppercase; }
         .game-card { background: var(--card); border: 1px solid var(--accent); border-radius: 8px; padding: 15px; text-align: center; cursor: pointer; transition: 0.2s; }
         .game-card:hover { border-color: var(--primary); transform: scale(1.05); }
         .game-icon { width: 100%; aspect-ratio: 1; border-radius: 5px; object-fit: cover; margin-bottom: 10px; background: #111; }
@@ -34,6 +36,8 @@
 </head>
 <body>
 
+    <div id="versionTag">BUILD_V2.4.27_JAN2026</div>
+
     <div id="lockdownScreen">
         <h1>404 Not Found</h1>
         <p>The requested URL was not found on this server.</p>
@@ -43,7 +47,6 @@
         <div class="glitch">⚠ SYSTEM FAILURE ⚠</div>
         <h1 style="font-size: 40px; margin: 20px 0;">HACKED BY MONGLE</h1>
         <p id="hackedMsg" style="letter-spacing: 3px;">INITIALIZING DATA WIPE...</p>
-        <div style="margin-top: 50px; font-size: 12px; opacity: 0.5;">RECOVERY_IMPOSSIBLE</div>
     </div>
 
     <div id="mainApp">
@@ -51,8 +54,11 @@
             <div id="loginStatus" style="margin-bottom:15px; font-size:12px; border:1px solid var(--primary); padding:5px 15px;">STATUS: CONNECTING...</div>
             <div style="width:340px; padding:40px; border:1px solid var(--primary); text-align:center;">
                 <h2>MONGLE_OS</h2>
-                <div style="text-align:left; font-size:9px; color:#006600; margin-bottom:15px; border:1px solid #002200; padding:5px;">
-                    [UPDATES]<br>> Global Alarm Hack Enabled<br>> Click-to-Trigger Siren Live<br>> Shift+L Override Verified
+                <div style="text-align:left; font-size:9px; color:#006600; margin-bottom:15px; border:1px solid #002200; padding:10px; background:#000800;">
+                    <b style="color:var(--primary)">[VER 2.4 UPDATES]</b><br>
+                    > Global Alarm Hack Sync<br>
+                    > Build Version Tracking Added<br>
+                    > Lockdown Setting Persistence
                 </div>
                 <input type="text" id="username" class="input-box" placeholder="USER_ID">
                 <input type="password" id="password" class="input-box" placeholder="SEC_KEY">
@@ -80,6 +86,7 @@
         <div id="ownerSettings" class="side-panel">
             <h3 style="color:gold;">ROOT_OVERLORD</h3>
             <button id="maintBtn" class="input-box" onclick="toggleMaintenance()">LOCKDOWN: ON</button>
+            <button class="input-box" style="border-color: #0044ff; color: #0044ff;" onclick="forceUpdate()">FORCE_GLOBAL_UPDATE</button>
             <hr style="border-color: #333; margin: 20px 0;">
             <h4 style="color:red; font-size:11px;">HACKER_TOOLS (ALARM)</h4>
             <input type="text" id="customHackMsg" class="input-box" placeholder="Custom Hack Message...">
@@ -112,6 +119,7 @@
         let allGames = [];
         let audioCtx = null;
         let alarmOsc = null;
+        const currentVersion = "2.4.27"; // UPDATE THIS WHEN YOU CHANGE THE CODE
 
         // SHIFT + L BYPASS
         document.addEventListener('keydown', (e) => {
@@ -153,61 +161,58 @@
             });
         };
 
-        // --- THE SIREN LOGIC ---
+        // SIREN
         function startAlarm() {
             if (alarmOsc) return;
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             alarmOsc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
-            
             alarmOsc.type = 'sawtooth';
             alarmOsc.frequency.setValueAtTime(440, audioCtx.currentTime);
-            alarmOsc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.5);
-            
             alarmOsc.connect(gain);
             gain.connect(audioCtx.destination);
             gain.gain.value = 0.3;
-            
-            // Wobble effect
-            setInterval(() => {
-                if(alarmOsc) alarmOsc.frequency.exponentialRampToValueAtTime(Math.random() > 0.5 ? 800 : 400, audioCtx.currentTime + 0.2);
-            }, 200);
-
+            setInterval(() => { if(alarmOsc) alarmOsc.frequency.exponentialRampToValueAtTime(Math.random() > 0.5 ? 800 : 400, audioCtx.currentTime + 0.2); }, 200);
             alarmOsc.start();
         }
 
-        function stopAlarm() {
-            if (alarmOsc) {
-                alarmOsc.stop();
-                alarmOsc = null;
-            }
-        }
+        function stopAlarm() { if (alarmOsc) { alarmOsc.stop(); alarmOsc = null; } }
 
         window.triggerHack = (state) => {
             const msg = document.getElementById('customHackMsg').value || "ALL DATA IS BEING DELETED...";
             set(ref(db, 'global/hack'), { active: state, message: msg });
         };
 
+        window.forceUpdate = () => {
+            set(ref(db, 'global/update'), Date.now());
+            alert("Update command sent to all users.");
+        };
+
         function syncSystem() {
+            // Maintenance
             onValue(ref(db, 'global/maintenance'), (s) => {
                 const isLocked = s.val() !== false;
                 document.getElementById('loginStatus').innerText = isLocked ? "STATUS: [LOCKED]" : "STATUS: [OPERATIONAL]";
                 if(isLocked && sessionStorage.getItem('mRole') === 'pleb' && !sessionStorage.getItem('bypassed')) location.reload();
+                if(document.getElementById('maintBtn')) document.getElementById('maintBtn').innerText = isLocked ? "LOCKDOWN: ON" : "LOCKDOWN: OFF";
             });
 
+            // Hack
             onValue(ref(db, 'global/hack'), (s) => {
                 const data = s.val();
-                const overlay = document.getElementById('hackedOverlay');
                 if(data && data.active && sessionStorage.getItem('mRole') === 'pleb') {
-                    overlay.style.display = 'flex';
+                    document.getElementById('hackedOverlay').style.display = 'flex';
                     document.getElementById('hackedMsg').innerText = data.message;
-                    // Siren triggers on first click if active
                     window.onclick = () => startAlarm();
                 } else {
-                    overlay.style.display = 'none';
+                    document.getElementById('hackedOverlay').style.display = 'none';
                     stopAlarm();
-                    window.onclick = null;
                 }
+            });
+
+            // Force Refresh logic
+            onValue(ref(db, 'global/update'), (s) => {
+                if(s.exists() && !sessionStorage.getItem('root')) location.reload();
             });
         }
 
