@@ -2,71 +2,86 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Google Drive</title>
     <link id="favicon" rel="icon" href="https://ssl.gstatic.com/images/branding/product/1x/drive_2020q4_32dp.png">
     <style>
-        :root { --primary: #00ff88; --danger: #ff4757; --bg: #050505; --card: #0f172a; --accent: #3b82f6; }
-        body { background-color: var(--bg); color: #e2e8f0; font-family: 'Segoe UI', sans-serif; margin: 0; overflow-x: hidden; }
+        :root { --primary: #00d2ff; --danger: #ff4b2b; --bg: #00040a; --card: #001220; --panel: rgba(0, 10, 20, 0.95); }
+        body { background: var(--bg); color: #e2e8f0; font-family: 'Courier New', monospace; margin: 0; overflow: hidden; }
 
-        /* LOGIN SCREEN */
-        #authLayer { position: fixed; inset: 0; background: radial-gradient(circle at center, #111 0%, #000 100%); z-index: 100000; display: flex; align-items: center; justify-content: center; }
-        .login-box { width: 350px; padding: 40px; background: #000; border: 1px solid #222; border-radius: 12px; text-align: center; box-shadow: 0 0 30px rgba(0, 255, 136, 0.1); }
-        .hacker-title { font-family: monospace; font-size: 2.5rem; color: var(--primary); letter-spacing: 5px; margin-bottom: 20px; }
-        .input-field { width: 100%; padding: 12px; margin: 10px 0; background: #111; border: 1px solid #333; color: white; border-radius: 6px; box-sizing: border-box; outline: none; }
-        .btn { width: 100%; padding: 12px; background: var(--primary); color: #000; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; transition: 0.3s; }
-        .btn:hover { background: #00cc6e; transform: scale(1.02); }
+        /* LOGIN SCREEN (PRESERVED) */
+        #authLayer { position: fixed; inset: 0; background: #000; z-index: 100000; display: flex; align-items: center; justify-content: center; }
+        .login-box { width: 450px; padding: 30px; background: #000810; border: 2px solid var(--primary); border-radius: 4px; text-align: center; }
+        .hacker-title { font-size: 3rem; color: var(--primary); letter-spacing: 8px; margin: 0; }
+        .input-field { width: 90%; padding: 12px; margin: 10px 0; background: #000; border: 1px solid #004466; color: var(--primary); outline: none; }
+        .updates-log { background: #001220; border: 1px solid #002233; padding: 10px; margin: 15px 0; height: 80px; overflow-y: auto; text-align: left; font-size: 11px; color: #5588aa; }
+        .btn-main { width: 100%; padding: 15px; background: var(--primary); color: #000; font-weight: bold; border: none; cursor: pointer; }
+        .btn-sub { width: 48%; padding: 8px; background: transparent; border: 1px solid #004466; color: #004466; cursor: pointer; margin-top: 10px; }
 
-        /* ADMIN TOOLBAR */
-        #adminToolbar { position: fixed; bottom: 20px; left: 20px; right: 20px; background: rgba(10, 10, 10, 0.95); border: 1px solid var(--accent); border-radius: 12px; padding: 20px; z-index: 9999; display: none; flex-direction: column; box-shadow: 0 -10px 40px rgba(0,0,0,0.8); }
-        #adminViewGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; max-height: 200px; overflow-y: auto; margin-bottom: 15px; padding: 10px; background: #000; border-radius: 8px; }
-        .user-card { background: #111; border: 1px solid #222; padding: 10px; border-radius: 8px; }
-        .user-card b { color: var(--primary); font-size: 12px; display: block; }
-        .user-card span { font-size: 10px; color: #888; }
-        .card-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: 8px; }
-        .sm-btn { font-size: 9px; padding: 4px; cursor: pointer; border: none; border-radius: 3px; background: #333; color: white; }
-        .sm-btn.kick { background: var(--danger); }
+        /* DOORS-STYLE ADMIN PANEL */
+        #adminPanel {
+            position: fixed;
+            top: 0;
+            right: -350px; /* Hidden by default */
+            width: 320px;
+            height: 100vh;
+            background: var(--panel);
+            border-left: 2px solid var(--primary);
+            z-index: 99999;
+            transition: 0.4s cubic-bezier(0.1, 0.7, 1.0, 0.1);
+            padding: 20px;
+            box-sizing: border-box;
+            box-shadow: -10px 0 30px rgba(0,0,0,0.8);
+        }
+        #adminPanel.open { right: 0; }
+        
+        .panel-header { border-bottom: 1px solid var(--primary); padding-bottom: 10px; margin-bottom: 20px; color: var(--primary); font-weight: bold; font-size: 1.2rem; }
+        .user-list { height: 50%; overflow-y: auto; background: rgba(0,0,0,0.5); border: 1px solid #004466; margin-bottom: 20px; padding: 5px; }
+        .u-item { background: #001220; border: 1px solid #002233; padding: 10px; margin-bottom: 5px; font-size: 11px; }
+        
+        /* OPEN BUTTON (VISIBLE TO ADMINS ONLY) */
+        #panelToggle { position: fixed; right: 20px; top: 20px; padding: 10px 20px; background: var(--primary); color: black; border: none; border-radius: 5px; cursor: pointer; display: none; z-index: 9999; }
 
         /* ARCADE GRID */
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; padding: 40px; }
-        .game-card { background: var(--card); border: 1px solid #1e293b; padding: 20px; border-radius: 12px; text-align: center; cursor: pointer; transition: 0.3s; }
-        .game-card:hover { border-color: var(--primary); background: #1e293b; }
-
-        #shadowMsg { position: fixed; top: 20px; right: 20px; background: var(--primary); color: black; padding: 15px; border-radius: 8px; z-index: 1000000; font-weight: bold; display: none; box-shadow: 0 0 20px var(--primary); }
-        #gameOverlay { position: fixed; inset: 0; background: #000; z-index: 50000; display: none; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; padding: 40px; height: 100vh; overflow-y: auto; }
+        .game-card { background: var(--card); border: 1px solid #002233; padding: 20px; text-align: center; cursor: pointer; transition: 0.2s; }
+        .game-card:hover { border-color: var(--primary); }
     </style>
 </head>
 <body>
 
-    <div id="shadowMsg"></div>
+    <div id="adminPanel">
+        <div class="panel-header">MODERATION CONSOLE</div>
+        <div class="user-list" id="adminGrid"></div>
+        
+        <div style="color:var(--primary); font-size: 10px; margin-bottom: 5px;">SERVER SETTINGS</div>
+        <input id="steTitle" class="input-field" placeholder="Cloak Title" style="font-size: 11px;">
+        <input id="steIcon" class="input-field" placeholder="Emoji Icon" style="font-size: 11px;">
+        <button class="btn-main" style="padding: 10px; font-size: 12px;" onclick="applySte()">APPLY CLOAK</button>
+        
+        <button class="btn-sub" style="width: 100%; border-color: red; color: red;" onclick="togglePanel()">CLOSE PANEL</button>
+    </div>
+
+    <button id="panelToggle" onclick="togglePanel()">⚙️ ADMIN</button>
 
     <div id="authLayer">
         <div class="login-box">
             <h1 class="hacker-title">MONGLE</h1>
-            <input type="text" id="username" class="input-field" placeholder="Username">
-            <input type="password" id="password" class="input-field" placeholder="Key (Admins Only)">
-            <button class="btn" onclick="handleLogin()">ENTER SYSTEM</button>
+            <input type="text" id="username" class="input-field" placeholder="[ USERNAME ]">
+            <button class="btn-main" onclick="handleLogin('pleb')">PLEB ACCESS</button>
+            <div class="updates-log">
+                [SYSTEM] Doors Admin Panel Integrated...<br>
+                [UPDATE] Global Syncing Active...
+            </div>
+            <input type="password" id="password" class="input-field" placeholder="[ SECURITY_KEY ]" style="height: 20px; font-size: 10px;">
+            <div style="display:flex; justify-content: space-between;">
+                <button class="btn-sub" onclick="handleLogin('admin')">ADMIN_LOGIN</button>
+                <button class="btn-sub" onclick="handleLogin('root')">ROOT_OVERRIDE</button>
+            </div>
         </div>
     </div>
 
     <div id="arcade" style="display:none;">
         <div class="grid" id="gameGrid"></div>
-        <div id="adminToolbar">
-            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                <b style="color:var(--primary)">🛰️ COMMANDER LIVE VIEW</b>
-            </div>
-            <div id="adminViewGrid"></div>
-            <div style="display:flex; gap:10px;">
-                <input id="steTitle" class="input-field" style="margin:0; flex:1" placeholder="Cloak Title (e.g. Math Lab)">
-                <input id="steIcon" class="input-field" style="margin:0; width:80px" placeholder="Emoji">
-                <button class="btn" style="width:120px" onclick="applySte()">HIDE SITE</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="gameOverlay">
-        <button onclick="closeGame()" style="position:fixed; top:10px; left:10px; z-index:60000; padding:10px; background:red; color:white; border:none; cursor:pointer;">EXIT</button>
-        <iframe id="gameFrame" src="" style="width:100%; height:100%; border:none;"></iframe>
     </div>
 
     <script type="module">
@@ -88,109 +103,65 @@
         window.db = db;
         window.dbTools = { ref, set, onValue, update, remove };
 
-        window.handleLogin = function() {
+        window.handleLogin = function(type) {
             const user = document.getElementById('username').value.trim();
             const pass = document.getElementById('password').value;
-            if(!user) return alert("Username required");
+            if(!user) return;
+
+            const h_admin = "MTIzNA=="; 
+            const h_root = "TU9OR0xFX09XTkVSXzk5"; 
 
             let role = 'pleb';
-            if(pass === "1234") role = 'admin';
-            if(pass === "MONGLE_OWNER_99") role = 'root';
+            if(type === 'admin' && btoa(pass) === h_admin) role = 'admin';
+            if(type === 'root' && btoa(pass) === h_root) role = 'root';
+            if(type !== 'pleb' && role === 'pleb') return alert("INVALID KEY");
 
             sessionStorage.setItem('mUser', user);
             sessionStorage.setItem('mRole', role);
 
             const uKey = user.replace(/\s+/g, '_');
-            const userRef = ref(db, 'status/' + uKey);
-            onDisconnect(userRef).remove();
-            set(userRef, { name: user, role: role, playing: "Browsing" });
+            set(ref(db, 'status/' + uKey), { name: user, role: role, playing: "Browsing" });
+            onDisconnect(ref(db, 'status/' + uKey)).remove();
 
             document.getElementById('authLayer').style.display = 'none';
             document.getElementById('arcade').style.display = 'block';
-            
-            if(role === 'root' || role === 'admin') setupAdmin();
-            setupListeners(uKey);
+            if(role !== 'pleb') {
+                document.getElementById('panelToggle').style.display = 'block';
+                setupAdminView();
+            }
             loadGames();
         };
 
-        function setupAdmin() {
-            document.getElementById('adminToolbar').style.display = 'flex';
+        function setupAdminView() {
             onValue(ref(db, 'status'), (snap) => {
-                const grid = document.getElementById('adminViewGrid');
-                grid.innerHTML = "";
-                const users = snap.val();
-                if(!users) return;
-                Object.keys(users).forEach(id => {
-                    const u = users[id];
-                    if(u.role === 'root') return;
-                    const card = document.createElement('div');
-                    card.className = "user-card";
-                    card.innerHTML = `<b>${u.name}</b><span>📍 ${u.playing}</span>
-                        <div class="card-btns">
-                            <button class="sm-btn kick" onclick="remoteCmd('${id}', 'kick')">KICK</button>
-                            <button class="sm-btn" onclick="remoteMsg('${id}')">MSG</button>
-                        </div>`;
-                    grid.appendChild(card);
+                const grid = document.getElementById('adminGrid'); grid.innerHTML = "";
+                const data = snap.val(); if(!data) return;
+                Object.keys(data).forEach(id => {
+                    if(data[id].role === 'root') return;
+                    const c = document.createElement('div'); c.className = "u-item";
+                    c.innerHTML = `<b>${data[id].name}</b><br>${data[id].playing}<br>
+                        <button onclick="remoteCmd('${id}', 'kick')" style="color:red; background:none; border:none; cursor:pointer; font-size:10px;">[KICK]</button>`;
+                    grid.appendChild(c);
                 });
             });
         }
 
-        function setupListeners(uKey) {
-            onValue(ref(db, `status/${uKey}/cmd`), (snap) => {
-                if(snap.val() === 'kick') location.replace("https://google.com");
-            });
-            onValue(ref(db, `status/${uKey}/msg`), (snap) => {
-                const m = snap.val();
-                if(m) {
-                    const b = document.getElementById('shadowMsg');
-                    b.innerText = m; b.style.display = 'block';
-                    setTimeout(() => { b.style.display='none'; update(ref(db, `status/${uKey}`), {msg: null}); }, 4000);
-                }
-            });
-            onValue(ref(db, 'global/ste'), (snap) => {
-                const d = snap.val();
-                if(d) {
-                    document.title = d.title;
-                    document.getElementById('favicon').href = `data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>${d.emoji}</text></svg>`;
-                }
-            });
-        }
-    </script>
-
-    <script>
-        function remoteCmd(id, cmd) { window.dbTools.update(window.dbTools.ref(window.db, `status/${id}`), { cmd: cmd }); }
-        function remoteMsg(id) { 
-            const m = prompt("Shadow Message:"); 
-            if(m) window.dbTools.update(window.dbTools.ref(window.db, `status/${id}`), { msg: m }); 
-        }
-        function applySte() {
-            const t = document.getElementById('steTitle').value;
-            const e = document.getElementById('steIcon').value;
-            window.dbTools.set(window.dbTools.ref(window.db, 'global/ste'), { title: t, emoji: e });
-        }
         async function loadGames() {
             const res = await fetch(`https://api.github.com/repos/bob154526-hue/Mongle/contents/`);
             const files = await res.json();
             files.forEach(file => {
                 if(!file.name.endsWith('.html') || file.name === 'index.html') return;
-                const d = document.createElement('div');
-                d.className = 'game-card';
-                d.innerHTML = `<h3>${file.name.replace('.html', '')}</h3>`;
-                d.onclick = () => {
-                    const u = sessionStorage.getItem('mUser').replace(/\s+/g, '_');
-                    window.dbTools.update(window.dbTools.ref(window.db, `status/${u}`), { playing: file.name });
-                    document.getElementById('gameOverlay').style.display = 'block';
-                    document.getElementById('gameFrame').src = file.download_url;
-                };
+                const d = document.createElement('div'); d.className = 'game-card'; d.innerHTML = `<h3>${file.name.replace('.html', '')}</h3>`;
+                d.onclick = () => window.open(file.download_url);
                 document.getElementById('gameGrid').appendChild(d);
             });
         }
-        function closeGame() {
-            document.getElementById('gameOverlay').style.display = 'none';
-            document.getElementById('gameFrame').src = "";
-            const u = sessionStorage.getItem('mUser').replace(/\s+/g, '_');
-            window.dbTools.update(window.dbTools.ref(window.db, `status/${u}`), { playing: "Browsing" });
-        }
+    </script>
+
+    <script>
+        function togglePanel() { document.getElementById('adminPanel').classList.toggle('open'); }
+        function remoteCmd(id, c) { window.dbTools.update(window.dbTools.ref(window.db, `status/${id}`), { cmd: c }); }
+        function applySte() { window.dbTools.set(window.dbTools.ref(window.db, 'global/ste'), { title: document.getElementById('steTitle').value, emoji: document.getElementById('steIcon').value }); }
     </script>
 </body>
 </html>
