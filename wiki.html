@@ -4,35 +4,99 @@
     <title>Settings</title>
     <style>
         body { background: #05070a; color: #fff; font-family: sans-serif; padding: 40px; }
+        .hidden { display: none; }
         .box { background: #11141d; padding: 25px; border-radius: 15px; border: 1px solid #1f2937; margin-bottom: 20px; max-width: 500px; margin-inline: auto; }
-        input { width: 90%; padding: 10px; margin: 10px 0; border-radius: 8px; border: 1px solid #333; background: #000; color: #fff; }
-        .btn { width: 100%; padding: 10px; border: none; background: #00d2ff; color: #000; font-weight: bold; cursor: pointer; border-radius: 8px; }
+        input, select { width: 90%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #333; background: #000; color: #fff; }
+        .btn { width: 100%; padding: 12px; border: none; background: #00d2ff; color: #000; font-weight: bold; cursor: pointer; border-radius: 8px; }
+        #keyDisplay { color: #00d2ff; font-weight: bold; font-family: monospace; font-size: 1.2rem; }
     </style>
 </head>
 <body>
-    <div id="panel">
-        <h2 style="text-align:center;">⚙️ System Settings</h2>
-        
-        <div class="box">
-            <h3>🖼️ Site Background</h3>
-            <input type="text" id="bgUrl" placeholder="Image URL (Direct link)">
-            <button class="btn" onclick="localStorage.setItem('siteBG', document.getElementById('bgUrl').value); alert('Saved!');">Apply Background</button>
-        </div>
-
-        <div class="box">
-            <h3>🎭 Tab Cloaker</h3>
-            <input type="text" id="tTitle" placeholder="Tab Name">
-            <input type="text" id="tIcon" placeholder="Icon URL">
-            <button class="btn" onclick="localStorage.setItem('tabTitle', document.getElementById('tTitle').value); localStorage.setItem('tabIcon', document.getElementById('tIcon').value); alert('Saved!');">Apply Cloak</button>
-        </div>
-
-        <div class="box">
-            <h3>🛑 Panic Key</h3>
-            <input type="text" id="pUrl" placeholder="https://google.com">
-            <button class="btn" onclick="localStorage.setItem('panicUrl', document.getElementById('pUrl').value); alert('Saved!');">Set Panic URL</button>
-        </div>
-
-        <p style="text-align:center;"><a href="index.html" style="color:#00d2ff">← Back to Arcade</a></p>
+    <div id="lock" style="text-align:center; padding-top:100px;">
+        <h2>🔐 Enter Password</h2>
+        <input type="password" id="pass" placeholder="Password">
+        <button class="btn" style="width:200px" onclick="check()">Unlock</button>
     </div>
+
+    <div id="admin" class="hidden">
+        <h2 style="text-align:center;">⚙️ Console Settings</h2>
+
+        <div class="box">
+            <h3>🛑 Panic Settings</h3>
+            <p>Panic Key: <span id="keyDisplay">Escape</span></p>
+            <button class="btn" id="recordBtn" onclick="startRecord()">Record New Key</button>
+            <input type="text" id="pUrl" placeholder="Panic Redirect Link (https://...)">
+            <button class="btn" style="background:#58a6ff; margin-top:10px;" onclick="savePanic()">Save Panic Link</button>
+        </div>
+
+        <div class="box">
+            <h3>🎨 Visuals & Emojis</h3>
+            <input type="text" id="bgUrl" placeholder="Background Image URL">
+            <button class="btn" onclick="localStorage.setItem('siteBG', document.getElementById('bgUrl').value); alert('Saved!')">Save BG</button>
+            <hr style="margin:20px 0; border:0; border-top:1px solid #333;">
+            <input type="text" id="fName" placeholder="filename.html">
+            <input type="text" id="emoji" placeholder="Emoji (e.g. ⛏️)">
+            <button class="btn" onclick="saveEmoji()">Set Emoji</button>
+        </div>
+
+        <div class="box">
+            <h3>🎭 Stealth Presets</h3>
+            <select id="preset" onchange="applyTab(this.value)">
+                <option value="">-- Choose Mask --</option>
+                <option value="drive">Google Drive</option>
+                <option value="classroom">Google Classroom</option>
+            </select>
+        </div>
+
+        <p style="text-align:center;"><a href="index.html" style="color:#00d2ff; text-decoration:none;">← Back to Arcade</a></p>
+    </div>
+
+    <script>
+        // Init display
+        document.getElementById('keyDisplay').innerText = localStorage.getItem('panicKey') || 'Escape';
+        document.getElementById('pUrl').value = localStorage.getItem('panicUrl') || 'https://classroom.google.com';
+
+        function check() { if(document.getElementById('pass').value === "1234"){ document.getElementById('lock').className='hidden'; document.getElementById('admin').className=''; } }
+        
+        function startRecord() {
+            const btn = document.getElementById('recordBtn');
+            btn.innerText = "PRESS ANY KEY...";
+            btn.style.background = "#ff7b72";
+            
+            window.onkeydown = (e) => {
+                e.preventDefault();
+                localStorage.setItem('panicKey', e.key);
+                document.getElementById('keyDisplay').innerText = e.key;
+                btn.innerText = "Record New Key";
+                btn.style.background = "#00d2ff";
+                window.onkeydown = null; // Stop listening
+                alert(`Panic Key set to: ${e.key}`);
+            };
+        }
+
+        function savePanic() {
+            localStorage.setItem('panicUrl', document.getElementById('pUrl').value);
+            alert("Panic Link Saved!");
+        }
+
+        function saveEmoji() {
+            let i = JSON.parse(localStorage.getItem('mongleIcons')) || {};
+            i[document.getElementById('fName').value] = document.getElementById('emoji').value;
+            localStorage.setItem('mongleIcons', JSON.stringify(i));
+            alert("Emoji Set!");
+        }
+
+        function applyTab(val) {
+            const masks = {
+                drive: ["My Drive - Google Drive", "https://ssl.gstatic.com/docs/doclist/images/drive_2022q3_32dp.png"],
+                classroom: ["Classes", "https://ssl.gstatic.com/classroom/favicon.png"]
+            };
+            if(masks[val]) {
+                localStorage.setItem('tabTitle', masks[val][0]);
+                localStorage.setItem('tabIcon', masks[val][1]);
+                alert("Mask Applied! Refresh Arcade.");
+            }
+        }
+    </script>
 </body>
 </html>
