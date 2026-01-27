@@ -13,37 +13,33 @@
         .ghost-active { cursor: none !important; }
         #fakeCursor { display: none; position: fixed; width: 20px; height: 20px; pointer-events: none; z-index: 30000; }
 
-        /* APP UI */
+        /* UI COMPONENTS */
         #lockdownScreen { position: fixed; inset: 0; background: white; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; color: black; }
         #bypassModal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #fff; border: 3px solid #000; padding: 30px; z-index: 10000; color: black; }
-        
         #mainApp { display: none; height: 100vh; flex-direction: column; }
+        
         .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; background: rgba(0,0,0,0.95); border-bottom: 1px solid var(--primary); }
-        
-        /* PLEB SETTINGS POPUP */
-        #plebSettings { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 300px; background: #111; border: 1px solid var(--primary); padding: 20px; z-index: 3000; }
-        
-        #settingsPanel { position: fixed; top: 0; right: -400px; width: 380px; height: 100vh; background: rgba(0, 5, 0, 0.98); border-left: 2px solid var(--primary); z-index: 2000; transition: 0.4s; padding: 25px; box-sizing: border-box; }
-        #settingsPanel.open { right: 0; }
-        
-        .input-box { background: #000; border: 1px solid var(--primary); color: var(--primary); padding: 10px; width: 100%; box-sizing: border-box; margin-bottom: 10px; font-family: inherit; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; padding: 20px; overflow-y: auto; }
-        .game-card { background: var(--card); border: 1px solid var(--accent); padding: 15px; border-radius: 8px; text-align: center; cursor: pointer; position: relative; }
+        .game-card { background: var(--card); border: 1px solid var(--accent); padding: 15px; border-radius: 8px; text-align: center; cursor: pointer; }
+
+        /* PANEL STYLES */
+        .side-panel { position: fixed; top: 0; right: -400px; width: 380px; height: 100vh; background: rgba(0, 5, 0, 0.98); border-left: 2px solid var(--primary); z-index: 2000; transition: 0.4s; padding: 25px; box-sizing: border-box; }
+        .side-panel.open { right: 0; }
+        
+        #plebSettings { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 300px; background: #111; border: 1px solid var(--primary); padding: 20px; z-index: 3000; }
+        .input-box { background: #000; border: 1px solid var(--primary); color: var(--primary); padding: 10px; width: 100%; box-sizing: border-box; margin-bottom: 10px; font-family: inherit; }
     </style>
 </head>
 <body id="bodyRoot">
 
-    <div id="seizedOverlay">
-        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/df/Seal_of_the_Federal_Bureau_of_Investigation.svg/1200px-Seal_of_the_Federal_Bureau_of_Investigation.svg.png" width="120">
-        <h1 style="color:red;">DOMAIN SEIZED</h1>
-    </div>
-
+    <img id="fakeCursor" src="https://cur.cursors-4u.net/arrows/arr-2/arr112.png">
+    <div id="seizedOverlay"><h1>DOMAIN SEIZED</h1></div>
     <div id="lockdownScreen"><h1>404 Not Found</h1></div>
 
     <div id="bypassModal">
-        <h2>ENTER_SYSTEM_KEY</h2>
-        <input type="password" id="sysKey" class="input-box" style="background: #eee; color: #000;">
-        <button onclick="checkBypass()" class="input-box" style="background:#000; color:#fff;">UNBOLT</button>
+        <h2>SYSTEM_KEY</h2>
+        <input type="password" id="sysKey" class="input-box" style="background:#eee; color:#000;">
+        <button onclick="checkBypass()" class="input-box">UNLOCK</button>
     </div>
 
     <div id="mainApp">
@@ -52,16 +48,16 @@
                 <h1>MONGLE_OS</h1>
                 <input type="text" id="username" class="input-box" placeholder="USERNAME">
                 <button class="input-box" onclick="handleLogin('pleb')">LOGIN</button>
-                <button class="input-box" style="font-size:10px;" onclick="promptLogin('root')">ROOT_CONSOLE</button>
+                <button class="input-box" style="font-size:10px;" onclick="promptLogin()">ROOT_CONSOLE</button>
             </div>
         </div>
 
         <div id="arcade" style="height:100%; display:none; flex-direction:column;">
             <div class="top-bar">
-                <div id="userTag">USER: GUEST</div>
+                <div id="userTag" style="color:var(--pin);">USER: GUEST</div>
                 <div style="display:flex; gap:10px;">
                     <button class="input-box" style="width:auto; margin:0;" onclick="openPlebSettings()">🔧</button>
-                    <button id="settingsBtn" class="input-box" style="display:none; width:auto; margin:0; border-color:red;" onclick="toggleSettings()">⚙️</button>
+                    <button id="settingsBtn" class="input-box" style="display:none; width:auto; margin:0; border-color:red;" onclick="toggleRootSettings()">⚙️</button>
                     <button class="input-box" style="background:var(--panic); color:white; border:none; width:auto; margin:0;" onclick="triggerPanic()">PANIC</button>
                 </div>
             </div>
@@ -70,24 +66,18 @@
 
         <div id="plebSettings">
             <h3 style="margin-top:0;">USER_SETTINGS</h3>
-            <label style="font-size:10px;">PANIC URL:</label>
-            <input type="text" id="panicUrlInput" class="input-box" placeholder="https://...">
-            
-            <label style="font-size:10px;">PANIC HOTKEY (Click & Press Key):</label>
-            <input type="text" id="hotkeyInput" class="input-box" readonly placeholder="Press a key..." onclick="captureKey()">
-            
+            <input type="text" id="panicUrlInput" class="input-box" placeholder="Panic URL">
+            <input type="text" id="hotkeyInput" class="input-box" readonly placeholder="Click & Press Key" onclick="captureKey()">
             <button class="input-box" style="background:var(--primary); color:black;" onclick="savePlebSettings()">SAVE</button>
-            <button class="input-box" onclick="document.getElementById('plebSettings').style.display='none'">CANCEL</button>
         </div>
 
-        <div id="settingsPanel">
+        <div id="settingsPanel" class="side-panel">
             <h2 style="color:red;">MONGLE_ROOT</h2>
             <input type="text" id="ttsInput" class="input-box" placeholder="TTS Message...">
             <button class="input-box" onclick="deployTTS()">SPEAK TO ALL</button>
-            <hr border="1" color="#222">
-            <button class="input-box" onclick="triggerChaos('seized')">👮 FBI_SEIZURE</button>
+            <button class="input-box" onclick="triggerChaos('seized')">FBI_SEIZURE</button>
             <button class="input-box" style="color:red;" onclick="triggerChaos('reset')">TERMINATE_ALL</button>
-            <button class="input-box" onclick="toggleSettings()">CLOSE</button>
+            <button class="input-box" onclick="toggleRootSettings()">CLOSE</button>
         </div>
     </div>
 
@@ -111,7 +101,13 @@
         };
 
         window.handleLogin = (role) => {
-            if (role === 'root') { isRoot = true; document.getElementById('settingsBtn').style.display = 'block'; document.getElementById('userTag').innerText = "USER: MONGLE"; }
+            if (role === 'root') { 
+                isRoot = true; 
+                document.getElementById('settingsBtn').style.display = 'block'; 
+                document.getElementById('userTag').innerText = "USER: MONGLE"; 
+            } else {
+                document.getElementById('userTag').innerText = "USER: " + (document.getElementById('username').value || "GUEST").toUpperCase();
+            }
             document.getElementById('authLayer').style.display = 'none';
             document.getElementById('arcade').style.display = 'flex';
             loadGames(); syncChaos();
@@ -128,12 +124,7 @@
         window.captureKey = () => {
             const input = document.getElementById('hotkeyInput');
             input.value = "LISTENING...";
-            const listener = (e) => {
-                e.preventDefault();
-                currentPanicKey = e.key;
-                input.value = e.key;
-                window.removeEventListener('keydown', listener);
-            };
+            const listener = (e) => { e.preventDefault(); currentPanicKey = e.key; input.value = e.key; window.removeEventListener('keydown', listener); };
             window.addEventListener('keydown', listener);
         };
 
@@ -150,6 +141,7 @@
             const res = await fetch(`https://api.github.com/repos/bob154526-hue/Mongle/contents/`);
             const files = (await res.json()).filter(i => i.name.endsWith('.html') && i.name !== 'index.html');
             const grid = document.getElementById('gameGrid');
+            grid.innerHTML = "";
             files.forEach(f => {
                 const card = document.createElement('div');
                 card.className = 'game-card';
@@ -159,6 +151,10 @@
             });
         }
 
+        window.toggleRootSettings = () => document.getElementById('settingsPanel').classList.toggle('open');
+        window.deployTTS = () => set(ref(db, 'global/tts'), { text: document.getElementById('ttsInput').value, time: Date.now() });
+        window.triggerChaos = (t) => set(ref(db, 'global/chaos'), { type: t, time: Date.now() });
+
         function syncChaos() {
             onValue(ref(db, 'global/chaos'), (s) => {
                 const d = s.val();
@@ -166,10 +162,6 @@
                 document.getElementById('seizedOverlay').style.display = (d.type === 'seized') ? 'flex' : 'none';
             });
         }
-
-        window.deployTTS = () => set(ref(db, 'global/tts'), { text: document.getElementById('ttsInput').value, time: Date.now() });
-        window.triggerChaos = (t) => set(ref(db, 'global/chaos'), { type: t, time: Date.now() });
-        window.toggleSettings = () => document.getElementById('settingsPanel').classList.toggle('open');
 
         document.addEventListener('keydown', (e) => {
             if (e.shiftKey && e.key === 'L') document.getElementById('bypassModal').style.display = 'block';
