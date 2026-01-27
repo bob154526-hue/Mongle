@@ -1,63 +1,38 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Admin Panel</title>
+    <title>Settings</title>
     <style>
-        body { background: #0d1117; color: #c9d1d9; font-family: sans-serif; padding: 40px; }
-        .hidden { display: none; }
-        .box { background: #161b22; padding: 20px; border-radius: 10px; border: 1px solid #30363d; margin-bottom: 20px; max-width: 500px; margin: auto; }
-        input { width: 90%; padding: 10px; margin: 10px 0; background: #000; color: #fff; border: 1px solid #333; }
-        .btn { width: 100%; padding: 10px; background: #58a6ff; border: none; font-weight: bold; cursor: pointer; }
+        body { background: #05070a; color: #fff; font-family: sans-serif; padding: 40px; }
+        .box { background: #11141d; padding: 25px; border-radius: 15px; border: 1px solid #1f2937; margin-bottom: 20px; max-width: 500px; margin-inline: auto; }
+        input { width: 90%; padding: 10px; margin: 10px 0; border-radius: 8px; border: 1px solid #333; background: #000; color: #fff; }
+        .btn { width: 100%; padding: 10px; border: none; background: #00d2ff; color: #000; font-weight: bold; cursor: pointer; border-radius: 8px; }
     </style>
 </head>
 <body>
-    <div id="lock" style="text-align:center;">
-        <h2>🔐 Password Required</h2>
-        <input type="password" id="pass" placeholder="Enter Password">
-        <button class="btn" style="width:100px" onclick="check()">Enter</button>
-    </div>
-
-    <div id="admin" class="hidden">
-        <h2 style="text-align:center">⚙️ Admin Settings</h2>
+    <div id="panel">
+        <h2 style="text-align:center;">⚙️ System Settings</h2>
         
         <div class="box">
-            <h3>🎨 Set Game Emoji</h3>
-            <input type="text" id="fName" placeholder="filename.html">
-            <input type="text" id="emoji" placeholder="🔥">
-            <button class="btn" onclick="saveEmoji()">Save Emoji</button>
+            <h3>🖼️ Site Background</h3>
+            <input type="text" id="bgUrl" placeholder="Image URL (Direct link)">
+            <button class="btn" onclick="localStorage.setItem('siteBG', document.getElementById('bgUrl').value); alert('Saved!');">Apply Background</button>
         </div>
 
         <div class="box">
             <h3>🎭 Tab Cloaker</h3>
             <input type="text" id="tTitle" placeholder="Tab Name">
             <input type="text" id="tIcon" placeholder="Icon URL">
-            <button class="btn" onclick="saveTab()">Save Cloak</button>
+            <button class="btn" onclick="localStorage.setItem('tabTitle', document.getElementById('tTitle').value); localStorage.setItem('tabIcon', document.getElementById('tIcon').value); alert('Saved!');">Apply Cloak</button>
         </div>
 
         <div class="box">
             <h3>🛑 Panic Key</h3>
             <input type="text" id="pUrl" placeholder="https://google.com">
-            <button class="btn" onclick="localStorage.setItem('panicUrl', document.getElementById('pUrl').value); alert('Saved!')">Set Panic</button>
+            <button class="btn" onclick="localStorage.setItem('panicUrl', document.getElementById('pUrl').value); alert('Saved!');">Set Panic URL</button>
         </div>
-        
-        <p style="text-align:center"><a href="index.html" style="color:#58a6ff">Back to Arcade</a></p>
+
+        <p style="text-align:center;"><a href="index.html" style="color:#00d2ff">← Back to Arcade</a></p>
     </div>
-
-    <script>
-        function check() { if(document.getElementById('pass').value === "1234"){ document.getElementById('lock').className='hidden'; document.getElementById('admin').className=''; } }
-        
-        function saveEmoji() {
-            let i = JSON.parse(localStorage.getItem('mongleIcons')) || {};
-            i[document.getElementById('fName').value] = document.getElementById('emoji').value;
-            localStorage.setItem('mongleIcons', JSON.stringify(i));
-            alert("Emoji set! Reload the arcade.");
-        }
-
-        function saveTab() {
-            localStorage.setItem('tabTitle', document.getElementById('tTitle').value);
-            localStorage.setItem('tabIcon', document.getElementById('tIcon').value);
-            alert("Tab mask saved!");
-        }
-    </script>
 </body>
 </html>
