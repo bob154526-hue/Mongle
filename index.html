@@ -5,83 +5,81 @@
     <title>Google Drive</title>
     <link id="favicon" rel="icon" href="https://ssl.gstatic.com/images/branding/product/1x/drive_2020q4_32dp.png">
     <style>
-        :root { --primary: #00d2ff; --danger: #ff4b2b; --bg: #00040a; --card: #001220; --panel: rgba(0, 10, 20, 0.95); }
-        body { background: var(--bg); color: #e2e8f0; font-family: 'Courier New', monospace; margin: 0; overflow: hidden; }
+        :root { --primary: #00ff88; --danger: #ff4b2b; --bg: #0b140d; --card: #141f16; --panel: rgba(0, 10, 5, 0.98); }
+        body { background: var(--bg); color: #e2e8f0; font-family: 'Inter', sans-serif; margin: 0; overflow: hidden; }
 
-        /* LOGIN SCREEN (PRESERVED) */
-        #authLayer { position: fixed; inset: 0; background: #000; z-index: 100000; display: flex; align-items: center; justify-content: center; }
-        .login-box { width: 450px; padding: 30px; background: #000810; border: 2px solid var(--primary); border-radius: 4px; text-align: center; }
-        .hacker-title { font-size: 3rem; color: var(--primary); letter-spacing: 8px; margin: 0; }
-        .input-field { width: 90%; padding: 12px; margin: 10px 0; background: #000; border: 1px solid #004466; color: var(--primary); outline: none; }
-        .updates-log { background: #001220; border: 1px solid #002233; padding: 10px; margin: 15px 0; height: 80px; overflow-y: auto; text-align: left; font-size: 11px; color: #5588aa; }
-        .btn-main { width: 100%; padding: 15px; background: var(--primary); color: #000; font-weight: bold; border: none; cursor: pointer; }
-        .btn-sub { width: 48%; padding: 8px; background: transparent; border: 1px solid #004466; color: #004466; cursor: pointer; margin-top: 10px; }
+        /* --- ARCADE TOP BAR --- */
+        .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; background: rgba(0,0,0,0.3); }
+        .clock { color: var(--primary); font-family: monospace; font-weight: bold; }
+        .search-area { display: flex; gap: 10px; align-items: center; }
+        .search-input { background: #000; border: 1px solid #333; color: white; padding: 8px 15px; border-radius: 8px; width: 300px; outline: none; }
+        .nav-btn { padding: 8px 15px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 5px; }
+        .btn-reload { background: #1a2e1f; color: #a0c4a9; border: 1px solid #2a4531; }
+        .btn-panic { background: #ef4444; color: white; }
 
-        /* DOORS-STYLE ADMIN PANEL */
-        #adminPanel {
-            position: fixed;
-            top: 0;
-            right: -350px; /* Hidden by default */
-            width: 320px;
-            height: 100vh;
-            background: var(--panel);
-            border-left: 2px solid var(--primary);
-            z-index: 99999;
-            transition: 0.4s cubic-bezier(0.1, 0.7, 1.0, 0.1);
-            padding: 20px;
-            box-sizing: border-box;
-            box-shadow: -10px 0 30px rgba(0,0,0,0.8);
-        }
+        /* --- GAME GRID LAYOUT --- */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px; padding: 40px; height: calc(100vh - 80px); overflow-y: auto; }
+        .game-card { background: var(--card); border: 1px solid #1c2e21; border-radius: 20px; padding: 30px 10px; text-align: center; cursor: pointer; transition: 0.2s; position: relative; }
+        .game-card:hover { border-color: var(--primary); transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.4); }
+        .game-card img { width: 60px; margin-bottom: 20px; opacity: 0.8; }
+        .game-card h3 { font-size: 13px; margin: 0; font-weight: 600; color: #d1d5db; }
+
+        /* --- DOORS ADMIN PANEL --- */
+        #adminPanel { position: fixed; top: 0; right: -350px; width: 320px; height: 100vh; background: var(--panel); border-left: 2px solid var(--primary); z-index: 99999; transition: 0.4s cubic-bezier(0.1, 0.7, 1.0, 0.1); padding: 25px; box-sizing: border-box; }
         #adminPanel.open { right: 0; }
-        
-        .panel-header { border-bottom: 1px solid var(--primary); padding-bottom: 10px; margin-bottom: 20px; color: var(--primary); font-weight: bold; font-size: 1.2rem; }
-        .user-list { height: 50%; overflow-y: auto; background: rgba(0,0,0,0.5); border: 1px solid #004466; margin-bottom: 20px; padding: 5px; }
-        .u-item { background: #001220; border: 1px solid #002233; padding: 10px; margin-bottom: 5px; font-size: 11px; }
-        
-        /* OPEN BUTTON (VISIBLE TO ADMINS ONLY) */
-        #panelToggle { position: fixed; right: 20px; top: 20px; padding: 10px 20px; background: var(--primary); color: black; border: none; border-radius: 5px; cursor: pointer; display: none; z-index: 9999; }
+        .panel-header { color: var(--primary); font-size: 18px; font-weight: bold; border-bottom: 1px solid #222; padding-bottom: 15px; margin-bottom: 20px; }
+        .u-item { background: #08110a; border: 1px solid #1a2e1f; border-radius: 8px; padding: 12px; margin-bottom: 8px; font-size: 11px; }
 
-        /* ARCADE GRID */
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; padding: 40px; height: 100vh; overflow-y: auto; }
-        .game-card { background: var(--card); border: 1px solid #002233; padding: 20px; text-align: center; cursor: pointer; transition: 0.2s; }
-        .game-card:hover { border-color: var(--primary); }
+        /* --- LOGIN SCREEN --- */
+        #authLayer { position: fixed; inset: 0; background: #000; z-index: 100000; display: flex; align-items: center; justify-content: center; }
+        .login-box { width: 450px; padding: 40px; background: #000; border: 1px solid #111; border-radius: 12px; text-align: center; box-shadow: 0 0 40px rgba(0, 255, 136, 0.15); }
+        .hacker-title { font-size: 3rem; color: var(--primary); letter-spacing: 8px; margin: 0 0 30px 0; }
+
+        #gameOverlay { position: fixed; inset: 0; background: #000; z-index: 50000; display: none; }
     </style>
 </head>
 <body>
 
-    <div id="adminPanel">
-        <div class="panel-header">MODERATION CONSOLE</div>
-        <div class="user-list" id="adminGrid"></div>
-        
-        <div style="color:var(--primary); font-size: 10px; margin-bottom: 5px;">SERVER SETTINGS</div>
-        <input id="steTitle" class="input-field" placeholder="Cloak Title" style="font-size: 11px;">
-        <input id="steIcon" class="input-field" placeholder="Emoji Icon" style="font-size: 11px;">
-        <button class="btn-main" style="padding: 10px; font-size: 12px;" onclick="applySte()">APPLY CLOAK</button>
-        
-        <button class="btn-sub" style="width: 100%; border-color: red; color: red;" onclick="togglePanel()">CLOSE PANEL</button>
-    </div>
-
-    <button id="panelToggle" onclick="togglePanel()">⚙️ ADMIN</button>
-
     <div id="authLayer">
         <div class="login-box">
             <h1 class="hacker-title">MONGLE</h1>
-            <input type="text" id="username" class="input-field" placeholder="[ USERNAME ]">
-            <button class="btn-main" onclick="handleLogin('pleb')">PLEB ACCESS</button>
-            <div class="updates-log">
-                [SYSTEM] Doors Admin Panel Integrated...<br>
-                [UPDATE] Global Syncing Active...
-            </div>
-            <input type="password" id="password" class="input-field" placeholder="[ SECURITY_KEY ]" style="height: 20px; font-size: 10px;">
-            <div style="display:flex; justify-content: space-between;">
-                <button class="btn-sub" onclick="handleLogin('admin')">ADMIN_LOGIN</button>
-                <button class="btn-sub" onclick="handleLogin('root')">ROOT_OVERRIDE</button>
+            <input type="text" id="username" class="search-input" style="width:100%; margin-bottom:10px;" placeholder="Username">
+            <button class="nav-btn" style="width:100%; background:var(--primary); color:black; justify-content:center; padding:15px;" onclick="handleLogin('pleb')">PLEB ACCESS</button>
+            
+            <div style="margin: 20px 0; height:1px; background:#222;"></div>
+            
+            <input type="password" id="password" class="search-input" style="width:100%; margin-bottom:10px; font-size:10px;" placeholder="Security Key">
+            <div style="display:flex; gap:10px;">
+                <button class="nav-btn" style="flex:1; background:#111; color:#555; border:1px solid #222;" onclick="handleLogin('admin')">ADMIN</button>
+                <button class="nav-btn" style="flex:1; background:#111; color:#555; border:1px solid #222;" onclick="handleLogin('root')">ROOT</button>
             </div>
         </div>
     </div>
 
     <div id="arcade" style="display:none;">
+        <div class="top-bar">
+            <div class="clock" id="liveClock">00:00:00 PM</div>
+            <div class="search-area">
+                <input type="text" class="search-input" placeholder="Search...">
+                <button class="nav-btn btn-reload" onclick="location.reload()">🔄 Reload</button>
+                <button class="nav-btn btn-panic" onclick="location.replace('https://classroom.google.com')">Panic</button>
+            </div>
+        </div>
+
         <div class="grid" id="gameGrid"></div>
+
+        <div id="adminPanel">
+            <div class="panel-header">MODERATION PANEL</div>
+            <div id="adminGrid" style="height:60%; overflow-y:auto; margin-bottom:20px;"></div>
+            <input id="steTitle" class="search-input" style="width:100%; margin-bottom:10px;" placeholder="Cloak Title">
+            <input id="steIcon" class="search-input" style="width:100%; margin-bottom:10px;" placeholder="Emoji">
+            <button class="nav-btn" style="width:100%; background:var(--primary); color:black; justify-content:center;" onclick="applySte()">APPLY CLOAK</button>
+        </div>
+    </div>
+
+    <div id="gameOverlay">
+        <button onclick="closeGame()" style="position:fixed; top:20px; left:20px; z-index:60000; padding:10px 20px; background:red; color:white; border:none; border-radius:8px; cursor:pointer;">EXIT</button>
+        <iframe id="gameFrame" src="" style="width:100%; height:100%; border:none;"></iframe>
     </div>
 
     <script type="module">
@@ -100,21 +98,22 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        window.db = db;
-        window.dbTools = { ref, set, onValue, update, remove };
+        window.db = db; window.dbTools = { ref, set, onValue, update };
+
+        // Clock Update
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('liveClock').innerText = now.toLocaleTimeString();
+        }, 1000);
 
         window.handleLogin = function(type) {
             const user = document.getElementById('username').value.trim();
             const pass = document.getElementById('password').value;
             if(!user) return;
 
-            const h_admin = "MTIzNA=="; 
-            const h_root = "TU9OR0xFX09XTkVSXzk5"; 
-
+            const h_root = "TU9OR0xFX09XTkVSXzk5"; // MONGLE_OWNER_99
             let role = 'pleb';
-            if(type === 'admin' && btoa(pass) === h_admin) role = 'admin';
             if(type === 'root' && btoa(pass) === h_root) role = 'root';
-            if(type !== 'pleb' && role === 'pleb') return alert("INVALID KEY");
 
             sessionStorage.setItem('mUser', user);
             sessionStorage.setItem('mRole', role);
@@ -125,22 +124,20 @@
 
             document.getElementById('authLayer').style.display = 'none';
             document.getElementById('arcade').style.display = 'block';
-            if(role !== 'pleb') {
-                document.getElementById('panelToggle').style.display = 'block';
-                setupAdminView();
-            }
+            if(role === 'root') setupAdmin();
             loadGames();
         };
 
-        function setupAdminView() {
+        function setupAdmin() {
+            window.addEventListener('keydown', (e) => { if(e.key === '/') document.getElementById('adminPanel').classList.toggle('open'); });
             onValue(ref(db, 'status'), (snap) => {
                 const grid = document.getElementById('adminGrid'); grid.innerHTML = "";
                 const data = snap.val(); if(!data) return;
                 Object.keys(data).forEach(id => {
                     if(data[id].role === 'root') return;
                     const c = document.createElement('div'); c.className = "u-item";
-                    c.innerHTML = `<b>${data[id].name}</b><br>${data[id].playing}<br>
-                        <button onclick="remoteCmd('${id}', 'kick')" style="color:red; background:none; border:none; cursor:pointer; font-size:10px;">[KICK]</button>`;
+                    c.innerHTML = `<b>${data[id].name}</b><br><span style="color:#555">${data[id].playing}</span><br>
+                        <button onclick="window.dbTools.update(window.dbTools.ref(window.db, 'status/${id}'), {cmd:'kick'})" style="color:red; background:none; border:none; cursor:pointer;">[KICK]</button>`;
                     grid.appendChild(c);
                 });
             });
@@ -151,17 +148,17 @@
             const files = await res.json();
             files.forEach(file => {
                 if(!file.name.endsWith('.html') || file.name === 'index.html') return;
-                const d = document.createElement('div'); d.className = 'game-card'; d.innerHTML = `<h3>${file.name.replace('.html', '')}</h3>`;
-                d.onclick = () => window.open(file.download_url);
+                const d = document.createElement('div'); d.className = 'game-card';
+                // Controller Icon from your Screenshot
+                d.innerHTML = `<img src="https://cdn-icons-png.flaticon.com/512/808/808439.png"><h3>${file.name.replace('.html', '').replace(/_/g, ' ')}</h3>`;
+                d.onclick = () => {
+                    document.getElementById('gameOverlay').style.display = 'block';
+                    document.getElementById('gameFrame').src = file.download_url;
+                    update(ref(db, 'status/' + sessionStorage.getItem('mUser').replace(/\s+/g, '_')), { playing: file.name });
+                };
                 document.getElementById('gameGrid').appendChild(d);
             });
         }
-    </script>
-
-    <script>
-        function togglePanel() { document.getElementById('adminPanel').classList.toggle('open'); }
-        function remoteCmd(id, c) { window.dbTools.update(window.dbTools.ref(window.db, `status/${id}`), { cmd: c }); }
-        function applySte() { window.dbTools.set(window.dbTools.ref(window.db, 'global/ste'), { title: document.getElementById('steTitle').value, emoji: document.getElementById('steIcon').value }); }
     </script>
 </body>
 </html>
