@@ -3,51 +3,50 @@
 <head>
     <title>Settings</title>
     <style>
-        body { background: #1a052e; color: #fff; font-family: sans-serif; padding: 20px; }
-        .box { background: #260a3e; padding: 20px; border-radius: 12px; border: 1px solid #581c87; margin-bottom: 20px; max-width: 500px; margin-inline: auto; }
-        .btn { width: 100%; padding: 12px; background: #a855f7; border: none; color: #fff; font-weight: bold; cursor: pointer; border-radius: 8px; margin-top: 10px; }
-        input { width: 90%; padding: 10px; margin: 10px 0; background: #000; color: #fff; border: 1px solid #581c87; }
-        .admin-only { display: none; border: 2px solid gold; padding: 20px; border-radius: 15px; }
+        body { background: #050b1a; color: #fff; font-family: sans-serif; padding: 20px; }
+        .box { background: #0a1428; padding: 20px; border-radius: 12px; border: 1px solid #1e293b; margin-bottom: 20px; max-width: 500px; margin-inline: auto; }
+        .btn { width: 100%; padding: 12px; background: #3b82f6; border: none; color: #fff; font-weight: bold; cursor: pointer; border-radius: 8px; margin-top: 10px; }
+        input { width: 90%; padding: 10px; margin: 10px 0; background: #000; color: #fff; border: 1px solid #334155; }
+        .admin-only { display: none; border: 2px solid #ef4444; padding: 20px; border-radius: 15px; }
     </style>
 </head>
 <body>
     <div class="box">
-        <h3>👤 Player Info</h3>
-        <p>Your ID: <b id="pID">Loading...</b></p>
-        <p>Panic Key: <b id="uKey">Escape</b></p>
+        <h3>👤 Profile Settings</h3>
+        <p>Logged in as: <b id="uNameDisplay" style="color:#3b82f6"></b></p>
         <button class="btn" onclick="recordKey()">Set Panic Key</button>
     </div>
 
     <div id="adminSection" class="admin-only">
-        <h2 style="text-align:center; color:gold;">👑 MASTER CONTROL</h2>
+        <h2 style="text-align:center; color:#ef4444;">🔑 SUPER ADMIN</h2>
         <div class="box">
-            <h3>🏆 Leaderboard</h3>
-            <div id="stats">Open Admin Console to see stats...</div>
-        </div>
-        <div class="box">
-            <h3>🐢 Global Prank</h3>
-            <input type="text" id="gEmoji" placeholder="Global Emoji">
-            <button class="btn" onclick="localStorage.setItem('globalEmoji', document.getElementById('gEmoji').value); alert('Done!');">Force Emoji</button>
+            <h3>🌍 Global Force</h3>
+            <input type="text" id="gEmoji" placeholder="Enter Emoji (e.g. 🐢)">
+            <button class="btn" style="background:#ef4444" onclick="forceEmoji()">Apply Force Emoji</button>
+            <button class="btn" style="background:#444" onclick="localStorage.removeItem('globalEmoji'); location.reload();">Clear Force</button>
         </div>
     </div>
 
-    <p style="text-align:center;"><a href="index.html" style="color:#a855f7">← Back to Games</a></p>
+    <p style="text-align:center;"><a href="index.html" style="color:#3b82f6; text-decoration:none;">← Back</a></p>
 
     <script>
+        document.getElementById('uNameDisplay').innerText = localStorage.getItem('mUser');
         const params = new URLSearchParams(window.location.search);
         if(params.get('mode') === 'admin') {
-            if(prompt("Password?") === "1234") document.getElementById('adminSection').style.display = 'block';
+            if(prompt("Admin Password?") === "1234") document.getElementById('adminSection').style.display = 'block';
         }
 
-        if(!localStorage.getItem('userCode')) localStorage.setItem('userCode', 'MNGL-' + Math.floor(1000 + Math.random() * 9000));
-        document.getElementById('pID').innerText = localStorage.getItem('userCode');
-        document.getElementById('uKey').innerText = localStorage.getItem('panicKey_user') || 'Escape';
+        function forceEmoji() {
+            const e = document.getElementById('gEmoji').value;
+            localStorage.setItem('globalEmoji', e);
+            alert("Force Emoji Active: " + e);
+            location.reload();
+        }
 
         function recordKey() {
-            alert("Press your new panic key now...");
+            alert("Press your new panic key...");
             window.onkeydown = (e) => {
                 localStorage.setItem('panicKey_user', e.key);
-                document.getElementById('uKey').innerText = e.key;
                 window.onkeydown = null;
                 alert("Key Saved!");
             };
