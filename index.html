@@ -5,41 +5,29 @@
     <title>Google Drive</title>
     <link id="favicon" rel="icon" href="https://ssl.gstatic.com/images/branding/product/1x/drive_2020q4_32dp.png">
     <style>
-        :root { --primary: #00d2ff; --bg: #000810; --card: rgba(0, 18, 32, 0.95); --accent: #002233; --panic: #ef4444; }
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: var(--bg); color: #e2e8f0; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
-        
-        /* Particle Background */
+        :root { --primary: #00d2ff; --bg: #000810; --card: rgba(0, 18, 32, 0.95); --accent: #002233; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: var(--bg); color: #e2e8f0; font-family: sans-serif; overflow: hidden; }
         #particleCanvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
-
-        /* Auth Layer */
         #authLayer { position: fixed; inset: 0; background: #000; z-index: 5000; display: flex; align-items: center; justify-content: center; }
-        .login-box { width: 340px; padding: 40px; background: #000; border: 1px solid var(--accent); border-radius: 15px; text-align: center; box-shadow: 0 0 40px rgba(0, 210, 255, 0.1); }
-        
-        /* Main UI */
-        .top-bar { position: relative; z-index: 100; display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; background: rgba(0,0,0,0.85); border-bottom: 1px solid var(--accent); backdrop-filter: blur(10px); }
+        .login-box { width: 340px; padding: 40px; background: #000; border: 1px solid var(--accent); border-radius: 15px; text-align: center; }
+        .top-bar { position: relative; z-index: 100; display: flex; justify-content: space-between; align-items: center; padding: 15px 30px; background: rgba(0,0,0,0.85); border-bottom: 1px solid var(--accent); }
         .grid { position: relative; z-index: 10; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 25px; padding: 40px; height: calc(100vh - 85px); overflow-y: auto; }
         .game-card { background: var(--card); border: 1px solid var(--accent); border-radius: 20px; padding: 30px 15px; text-align: center; cursor: pointer; transition: 0.3s; }
-        .game-card:hover { border-color: var(--primary); transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0, 210, 255, 0.2); }
-
-        /* Settings Panel */
-        #settingsPanel { position: fixed; top: 0; right: -350px; width: 320px; height: 100vh; background: rgba(0, 5, 10, 0.98); border-left: 2px solid var(--primary); z-index: 2000; transition: 0.4s; padding: 25px; box-shadow: -10px 0 30px rgba(0,0,0,0.5); }
+        .game-card:hover { border-color: var(--primary); transform: translateY(-5px); }
+        #settingsPanel { position: fixed; top: 0; right: -350px; width: 320px; height: 100vh; background: rgba(0, 5, 10, 0.98); border-left: 2px solid var(--primary); z-index: 2000; transition: 0.4s; padding: 25px; }
         #settingsPanel.open { right: 0; }
-        
-        .search-input { background: #000; border: 1px solid var(--accent); color: white; padding: 10px 15px; border-radius: 8px; outline: none; width: 100%; box-sizing: border-box; }
-        #announcementBar { position: fixed; top: -80px; left: 50%; transform: translateX(-50%); background: var(--primary); color: #000; padding: 15px 50px; border-radius: 0 0 20px 20px; font-weight: bold; transition: 0.6s; z-index: 6000; }
+        .search-input { background: #000; border: 1px solid var(--accent); color: white; padding: 10px 15px; border-radius: 8px; width: 100%; box-sizing: border-box; }
         .hidden { display: none !important; }
     </style>
 </head>
 <body>
     <canvas id="particleCanvas"></canvas>
-    <div id="announcementBar">MAINTENANCE MODE</div>
-
     <div id="authLayer">
         <div class="login-box">
             <h1 style="color:var(--primary); letter-spacing:10px;">MONGLE</h1>
             <input type="text" id="username" class="search-input" style="margin-bottom:12px;" placeholder="Username">
             <input type="password" id="password" class="search-input" style="margin-bottom:25px;" placeholder="Security Key">
-            <button class="search-input" style="background:var(--primary); color:#000; font-weight:bold; cursor:pointer; border:none;" onclick="handleLogin('pleb')">ACCESS</button>
+            <button class="search-input" style="background:var(--primary); color:#000; font-weight:bold; cursor:pointer;" onclick="handleLogin('pleb')">ACCESS</button>
             <button onclick="handleLogin('root')" style="margin-top:25px; background:none; border:none; color:#111; font-size:10px; cursor:pointer;">[ROOT]</button>
         </div>
     </div>
@@ -48,24 +36,19 @@
         <div class="top-bar">
             <div id="liveClock" style="color:var(--primary); font-family:monospace; font-weight:bold;">00:00:00</div>
             <div style="display:flex; gap:12px;">
-                <input type="text" id="gameSearch" class="search-input" style="width:200px;" placeholder="Search..." oninput="filterGames()">
-                <button id="settingsBtn" class="search-input" style="display:none; color:var(--primary); width:auto; cursor:pointer;" onclick="toggleSettings()">⚙️</button>
-                <button class="search-input" style="background:var(--panic); color:white; border:none; width:auto; font-weight:bold;" onclick="location.replace('https://classroom.google.com')">PANIC</button>
+                <input type="text" id="gameSearch" class="search-input" style="width:200px;" placeholder="Search...">
+                <button id="settingsBtn" class="search-input" style="display:none; color:var(--primary); width:auto;" onclick="toggleSettings()">⚙️</button>
+                <button class="search-input" style="background:#f44; color:white; border:none; width:auto;" onclick="location.replace('https://classroom.google.com')">PANIC</button>
             </div>
         </div>
         <div class="grid" id="gameGrid"></div>
     </div>
 
     <div id="settingsPanel">
-        <h2 style="color:var(--primary); font-size:18px;">OWNER CONSOLE</h2>
-        <button id="maintBtn" class="search-input" style="background:#004466; color:white; border:none;" onclick="toggleMaintenance()">LOCKDOWN: ON</button>
-        <div style="margin-top:25px;">
-            <h4 style="font-size:11px; color:var(--primary);">BROADCAST ALERT</h4>
-            <input type="text" id="broadcastMsg" class="search-input" placeholder="Type message...">
-            <button class="search-input" style="background:var(--primary); color:#000; margin-top:5px; border:none;" onclick="sendBroadcast()">SEND</button>
-        </div>
-        <div style="margin-top:25px;">
-            <h4 style="font-size:11px; color:var(--primary);">ACTIVE USERS</h4>
+        <h2 style="color:var(--primary);">OWNER CONSOLE</h2>
+        <button id="maintBtn" class="search-input" style="background:#004466; color:white;" onclick="toggleMaintenance()">LOCKDOWN: ON</button>
+        <div style="margin-top:20px;">
+            <h4 style="color:var(--primary);">ACTIVE USERS</h4>
             <div id="userList"></div>
         </div>
     </div>
@@ -90,18 +73,15 @@
             const pass = btoa(document.getElementById('password').value);
             let role = 'pleb';
 
-            if(type === 'root' && pass === "TU9OR0xFX09XTkVSXzk5") { 
-                role = 'root'; user = "OWNER"; 
-            } else if(type === 'pleb' && user) { 
-                role = 'pleb'; 
-            } else { return alert("Denied"); }
+            if(type === 'root' && pass === "TU9OR0xFX09XTkVSXzk5") { role = 'root'; user = "OWNER"; } 
+            else if(type === 'pleb' && user) { role = 'pleb'; } 
+            else { return alert("Denied"); }
 
             sessionStorage.setItem('mUser', user);
             sessionStorage.setItem('mRole', role);
             
-            const statusRef = ref(db, 'status/' + user);
-            set(statusRef, { name: user, role: role, time: Date.now() });
-            onDisconnect(statusRef).remove();
+            set(ref(db, 'status/' + user), { name: user, role: role, time: Date.now() });
+            onDisconnect(ref(db, 'status/' + user)).remove();
 
             document.getElementById('authLayer').classList.add('hidden');
             document.getElementById('arcade').classList.remove('hidden');
@@ -126,13 +106,10 @@
                     d.className = 'game-card';
                     d.innerHTML = `<span style="font-size:45px;">🎮</span><h3>${cleanName}</h3>`;
                     d.onclick = async () => {
-                        const gameRes = await fetch(item.download_url);
-                        const code = await gameRes.text();
-                        const blob = new Blob([code], {type: 'text/html'});
-                        const blobUrl = URL.createObjectURL(blob);
-                        
+                        // THE FIX: RawGithack bypasses the "code view" issue
+                        const url = `https://raw.githack.com/bob154526-hue/Mongle/main/${item.name}`;
                         const win = window.open('about:blank', '_blank');
-                        win.document.write(`<html><body style="margin:0;background:#000;"><iframe src="${blobUrl}" style="border:none;width:100vw;height:100vh;"></iframe></body></html>`);
+                        win.document.write(`<html><body style="margin:0;"><iframe src="${url}" style="border:none;width:100vw;height:100vh;"></iframe></body></html>`);
                     };
                     grid.appendChild(d);
                 }
@@ -143,14 +120,12 @@
             onValue(ref(db, 'global/maintenance'), (s) => {
                 const isLocked = s.val() !== false;
                 if(isLocked && sessionStorage.getItem('mRole') === 'pleb') location.replace('https://classroom.google.com');
-                document.getElementById('maintBtn').innerText = isLocked ? "LOCKDOWN: ON" : "LOCKDOWN: OFF";
-                document.getElementById('maintBtn').style.background = isLocked ? "#004466" : "#111";
-            });
-            onValue(ref(db, 'global/announcement'), (s) => {
-                const d = s.val(); if(!d) return;
-                const b = document.getElementById('announcementBar');
-                b.innerText = d.text; b.style.top = "0px";
-                setTimeout(() => b.style.top = "-80px", 6000);
+                const btn = document.getElementById('maintBtn');
+                if(btn) {
+                    btn.innerText = isLocked ? "LOCKDOWN: ON" : "LOCKDOWN: OFF";
+                    btn.style.background = isLocked ? "#00d2ff" : "#111";
+                    btn.style.color = isLocked ? "#000" : "#fff";
+                }
             });
         }
 
@@ -168,7 +143,6 @@
         }
 
         window.kickUser = (id) => set(ref(db, 'kicks/' + id), true);
-        window.sendBroadcast = () => set(ref(db, 'global/announcement'), { text: document.getElementById('broadcastMsg').value });
         window.toggleMaintenance = () => get(ref(db, 'global/maintenance')).then(s => set(ref(db, 'global/maintenance'), !s.val()));
         window.toggleSettings = () => document.getElementById('settingsPanel').classList.toggle('open');
         
