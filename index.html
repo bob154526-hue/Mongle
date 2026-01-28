@@ -8,30 +8,56 @@
         :root { --primary: #00ff41; --bg: #000; --card: #0a0a0a; --accent: #003b00; --panic: #ff3131; --mod: #007bff; --neon: 0 0 10px var(--primary); }
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #fff; color: #000; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
         
-        #ghostTrigger { position: fixed; top: 0; left: 0; width: 20px; height: 20px; background: transparent; z-index: 2147483647; cursor: crosshair; }
-        #lockdownScreen { position: fixed; inset: 0; background: #fff; z-index: 1000000; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-        #tosOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 2000000; display: none; align-items: center; justify-content: center; flex-direction: column; }
+        /* Secret Admin Entry */
+        #ghostTrigger { position: fixed; top: 0; left: 0; width: 25px; height: 25px; background: transparent; z-index: 2147483647; cursor: crosshair; }
         
+        /* Overlays */
+        #lockdownScreen { position: fixed; inset: 0; background: #fff; z-index: 1000000; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+        #maintenanceOverlay { position: fixed; inset: 0; background: #000; z-index: 5000000; display: none; flex-direction: column; align-items: center; justify-content: center; color: var(--primary); font-family: 'Consolas', monospace; }
+        #tosOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 2000000; display: none; align-items: center; justify-content: center; }
+        #broadcastBar { position: fixed; top: -60px; left: 0; width: 100%; height: 50px; background: var(--mod); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; transition: 0.5s; z-index: 9999999; border-bottom: 2px solid #fff; }
+        
+        /* Main UI */
         #mainApp { display: none; height: 100vh; flex-direction: column; background: var(--bg); color: var(--primary); font-family: 'Consolas', monospace; }
         .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; border-bottom: 1px solid var(--accent); background: #050505; }
         .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; padding: 25px; overflow-y: auto; flex-grow: 1; }
         .game-card { background: var(--card); border: 1px solid var(--accent); padding: 20px; border-radius: 6px; text-align: center; cursor: pointer; transition: 0.2s; color: var(--primary); }
         .game-card:hover { border-color: var(--primary); transform: scale(1.02); box-shadow: var(--neon); }
 
-        .modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #080808; border: 1px solid var(--primary); padding: 25px; z-index: 3000000; width: 500px; border-radius: 8px; color: var(--primary); }
-        .log-box { background: #000; border: 1px solid #111; height: 250px; overflow-y: auto; font-size: 11px; padding: 10px; margin: 10px 0; border-radius: 4px; }
-        .input-box { background: #000; border: 1px solid var(--accent); color: var(--primary); padding: 10px; width: 100%; box-sizing: border-box; margin-bottom: 12px; border-radius: 4px; text-align: center; font-family: inherit; }
-        .btn-glow { background: var(--primary); color: #000; border: none; padding: 10px; cursor: pointer; width: 100%; font-weight: bold; margin-bottom: 8px; }
+        /* Modals & Logs */
+        .modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #080808; border: 1px solid var(--primary); padding: 25px; z-index: 3000000; width: 600px; border-radius: 8px; color: var(--primary); }
+        .log-box { background: #000; border: 1px solid #111; height: 180px; overflow-y: auto; font-size: 11px; padding: 10px; margin: 10px 0; }
+        .user-row { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #111; padding: 8px 5px; }
+        .kick-btn { background: var(--panic); color: white; border: none; font-size: 9px; padding: 3px 8px; border-radius: 3px; cursor: pointer; }
+        
+        /* Forms */
+        .btn-glow { background: var(--primary); color: #000; border: none; padding: 12px; cursor: pointer; width: 100%; font-weight: bold; border-radius: 4px; margin-top: 5px; }
+        .input-box { background: #000; border: 1px solid var(--accent); color: var(--primary); padding: 12px; width: 100%; box-sizing: border-box; margin-bottom: 10px; border-radius: 4px; outline: none; }
+        .switch-row { display: flex; justify-content: space-between; align-items: center; padding: 8px; background: #0c0c0c; margin-bottom: 5px; border-radius: 4px; border: 1px solid #1a1a1a; font-size: 11px; }
+        
+        /* Toggle Switch */
+        .switch { position: relative; width: 30px; height: 16px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; inset: 0; cursor: pointer; background: #333; transition: .4s; border-radius: 18px; }
+        .slider:before { position: absolute; content: ""; height: 10px; width: 10px; left: 3px; bottom: 3px; background: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background: var(--primary); }
+        input:checked + .slider:before { transform: translateX(14px); }
     </style>
 </head>
 <body>
 
+    <div id="broadcastBar">SYSTEM: <span id="broadcastMsg" style="margin-left:10px;"></span></div>
     <div id="ghostTrigger" onclick="adminAuth()"></div>
-    <div id="lockdownScreen"><h1>404</h1><p>The requested URL was not found on this server.</p></div>
 
+    <div id="lockdownScreen">
+        <h1>404</h1><p>The requested URL was not found on this server.</p>
+        <div id="entryHint" style="opacity: 0; transition: 1s; color: #ccc; margin-top: 20px;">Press <b>[ Shift + L ]</b> to request access.</div>
+    </div>
+
+    <div id="maintenanceOverlay"><h1>SYSTEM_MAINTENANCE</h1><p>CORE MODULES UPDATING.</p></div>
     <div id="tosOverlay">
-        <div style="background:#080808; padding:40px; border-radius:12px; border:1px solid #111; color:var(--primary); text-align: center;">
-            <h2 style="margin-top:0;">MONGLE_OS</h2>
+        <div style="background:#080808; padding:40px; border-radius:12px; border:1px solid #222; width:300px; text-align:center;">
+            <h2 style="color:var(--primary);">MONGLE_OS</h2>
             <input type="text" id="plebUserInp" class="input-box" placeholder="Username...">
             <button class="btn-glow" onclick="enterSite()">LOGIN</button>
         </div>
@@ -39,10 +65,9 @@
 
     <div id="mainApp">
         <div class="top-bar">
-            <div style="font-weight:900;">MONGLE_OS <span id="roleLabel" style="color:var(--primary); font-size:10px;"></span></div>
+            <div>MONGLE_OS <span id="roleLabel" style="color:var(--primary); font-size:10px;"></span></div>
             <div style="display:flex; gap:10px;">
-                <button id="adminBtn" class="input-box" style="display:none; width:auto; border-color:var(--mod); color:var(--mod); margin:0;" onclick="toggleModal('adminHub')">ENFORCER</button>
-                <button id="rootBtn" class="input-box" style="display:none; width:auto; border-color:var(--primary); color:var(--primary); margin:0;" onclick="toggleModal('rootHub')">CORE</button>
+                <button id="rootBtn" class="input-box" style="display:none; width:auto; border-color:var(--primary); margin:0;" onclick="toggleModal('rootHub')">CORE_COMMAND</button>
                 <button class="input-box" style="width:auto; margin:0;" onclick="toggleModal('settingsMenu')">SETTINGS</button>
                 <button class="input-box" style="background:var(--panic); color:white; border:none; width:auto; margin:0;" onclick="triggerPanic()">PANIC</button>
             </div>
@@ -50,116 +75,135 @@
         <div class="grid" id="gameGrid"></div>
     </div>
 
-    <div id="adminHub" class="modal" style="border-color: var(--mod);">
-        <h3 style="color:var(--mod); margin-top:0;">ENFORCER_HUB</h3>
-        <p style="font-size:10px; opacity:0.6;">ACTIVE SESSIONS:</p>
-        <div id="adminLogs" class="log-box"></div>
-        <button class="btn-glow" style="background:var(--mod); color:white;" onclick="toggleModal('adminHub')">CLOSE</button>
-    </div>
-
     <div id="rootHub" class="modal">
-        <h3 style="margin-top:0;">MONGLE_CORE_v10.5</h3>
-        <p style="font-size:10px; opacity:0.6;">FULL SYSTEM TELEMETRY:</p>
-        <div id="rootLogs" class="log-box"></div>
-        <button class="btn-glow" onclick="toggleModal('rootHub')">CLOSE</button>
+        <h3 style="border-bottom: 1px solid var(--primary); margin:0 0 10px 0;">OVERSEER_v15.1</h3>
+        <div style="display: grid; grid-template-columns: 200px 1fr; gap: 15px;">
+            <div>
+                <p style="font-size:10px; opacity:0.6;">SYSTEM CONTROLS:</p>
+                <div class="switch-row"><span>Hint</span><label class="switch"><input type="checkbox" id="tHint" onchange="upGlobal('showHint', this.checked)"><span class="slider"></span></label></div>
+                <div class="switch-row"><span>Maint.</span><label class="switch"><input type="checkbox" id="tMaint" onchange="upGlobal('maintMode', this.checked)"><span class="slider"></span></label></div>
+                <button class="btn-glow" style="background:var(--panic); color:white; margin-top:5px; padding:8px;" onclick="triggerGlobalRestart()">FORCE RESTART</button>
+                
+                <p style="font-size:10px; opacity:0.6; margin-top:15px;">BROADCAST:</p>
+                <input type="text" id="bcInput" class="input-box" placeholder="Message..." style="font-size:11px;">
+                <button class="btn-glow" style="background:var(--mod); color:white; padding:8px;" onclick="sendBroadcast()">SEND TO ALL</button>
+            </div>
+            <div>
+                <p style="font-size:10px; opacity:0.6;">LIVE USERS:</p>
+                <div id="rootLogs" class="log-box"></div>
+            </div>
+        </div>
+        <button class="btn-glow" style="margin-top:10px;" onclick="toggleModal('rootHub')">EXIT</button>
     </div>
 
-    <div id="launcherModal" class="modal">
-        <h3 id="targetGameTitle">LAUNCH GAME</h3>
-        <button class="btn-glow" onclick="launchGame('stealth')">ABOUT:BLANK (STEALTH)</button>
-        <button class="btn-glow" style="background:var(--mod); color:white;" onclick="launchGame('direct')">DIRECT URL (SAVES)</button>
+    <div id="launcherModal" class="modal" style="width:300px;">
+        <h3 id="targetGameTitle">LAUNCH</h3>
+        <button class="btn-glow" onclick="launchGame('stealth')">STEALTH (TAB)</button>
+        <button class="btn-glow" style="background:var(--mod); color:white; margin-top:5px;" onclick="launchGame('direct')">DIRECT</button>
     </div>
 
-    <div id="settingsMenu" class="modal">
+    <div id="settingsMenu" class="modal" style="width:300px;">
         <h3>CONFIG</h3>
         <input type="text" id="pUrl" class="input-box" placeholder="Panic URL">
-        <input type="text" id="pKey" class="input-box" readonly placeholder="Panic Key">
+        <input type="text" id="pKeyDisplay" class="input-box" readonly style="cursor:pointer;" onclick="setNewKey()">
         <button class="btn-glow" onclick="saveSettings()">SAVE</button>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, onValue, push, update, onDisconnect } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, onValue, set, update, push, onDisconnect, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         const firebaseConfig = { apiKey: "AIzaSyDgRvxKypPsOx379SNleE6Uij7mKkEJxGY", databaseURL: "https://monglearcade-default-rtdb.firebaseio.com", projectId: "monglearcade" };
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        let userRole = "PLEB", currentUserName = "", userRef = null;
-        let config = { url: localStorage.getItem('pUrl') || 'https://google.com', key: localStorage.getItem('pKey') || 'q' };
+        let userRole = "PLEB", userRef = null, myID = null;
+        let config = { url: localStorage.getItem('pUrl') || 'https://google.com', key: localStorage.getItem('pKey') || 'q', pendingUrl: '' };
 
-        window.adminAuth = () => {
-            const k = prompt("ROOT_KEY:");
-            if (k === "MONGLE_OWNER_99") upgrade("MONGLE");
-            else if (k === "MONGLE_MOD_2026") upgrade("ADMIN");
-        };
-
+        // 1. FIXED KEY LISTENER (Captures even when focus is weird)
         window.addEventListener('keydown', (e) => {
-            if (e.key === config.key) triggerPanic();
-            if (e.shiftKey && e.key === 'L') document.getElementById('tosOverlay').style.display = 'flex';
+            if (e.target.tagName === 'INPUT') {
+                if (e.shiftKey && e.key === 'L') document.getElementById('tosOverlay').style.display = 'flex';
+                return; // Don't panic while typing
+            }
+            if (e.key.toLowerCase() === config.key.toLowerCase()) { e.preventDefault(); triggerPanic(); }
+            if (e.shiftKey && e.key === 'L') { e.preventDefault(); document.getElementById('tosOverlay').style.display = 'flex'; }
+        }, true);
+
+        // 2. GLOBAL SYNC
+        onValue(ref(db, 'system/config'), (snap) => {
+            const d = snap.val() || {};
+            if (userRole === "MONGLE") return; // Admin is Immune
+            document.getElementById('maintenanceOverlay').style.display = d.maintMode ? "flex" : "none";
+            document.getElementById('entryHint').style.opacity = d.showHint ? "1" : "0";
+            if (d.restartSignal && d.restartSignal > (localStorage.getItem('lastR') || 0)) { localStorage.setItem('lastR', d.restartSignal); location.reload(); }
+            if (d.lastBroadcast && d.lastBroadcast.time > (localStorage.getItem('lastBC') || 0)) {
+                localStorage.setItem('lastBC', d.lastBroadcast.time);
+                const bar = document.getElementById('broadcastBar');
+                document.getElementById('broadcastMsg').innerText = d.lastBroadcast.msg;
+                bar.style.top = "0px"; setTimeout(() => { bar.style.top = "-60px"; }, 7000);
+            }
         });
 
-        window.enterSite = () => {
-            currentUserName = document.getElementById('plebUserInp').value.trim() || "User_" + Math.floor(Math.random()*999);
-            document.getElementById('tosOverlay').style.display = 'none';
-            document.getElementById('lockdownScreen').style.display = 'none';
-            document.getElementById('mainApp').style.display = 'flex';
-            setupSession();
-        };
-
+        // 3. AUTH & ENTRY
+        window.adminAuth = () => { const k = prompt("ROOT_KEY:"); if (k === "MONGLE_OWNER_99") upgrade("MONGLE"); };
         function upgrade(role) {
-            userRole = role;
-            document.getElementById('lockdownScreen').style.display = 'none';
-            document.getElementById('tosOverlay').style.display = 'none';
-            document.getElementById('mainApp').style.display = 'flex';
+            userRole = role; document.getElementById('lockdownScreen').style.display = 'none';
+            document.getElementById('tosOverlay').style.display = 'none'; document.getElementById('mainApp').style.display = 'flex';
             document.getElementById('roleLabel').innerText = `[${role}]`;
-            document.getElementById('adminBtn').style.display = (role === "MONGLE" || role === "ADMIN") ? 'block' : 'none';
             document.getElementById('rootBtn').style.display = (role === "MONGLE") ? 'block' : 'none';
             if(userRef) update(userRef, { role: role });
-            loadGames();
+            loadGames(); if(role === "MONGLE") startOverseer();
         }
-
-        function setupSession() {
-            fetch('https://ipapi.co/json/').then(r => r.json()).then(d => {
-                userRef = push(ref(db, 'system/logs'), { 
-                    user: currentUserName, role: userRole, ip: d.ip, loc: `${d.city}, ${d.region}`, timestamp: Date.now()
-                });
-                onDisconnect(userRef).remove();
-                startSync();
-            });
+        window.enterSite = () => {
+            const name = document.getElementById('plebUserInp').value.trim() || "Guest";
+            document.getElementById('tosOverlay').style.display = 'none';
+            document.getElementById('lockdownScreen').style.display = 'none';
+            document.getElementById('mainApp').style.display = 'flex';
+            userRef = push(ref(db, 'system/presence'), { name: name, role: userRole, activity: "Menu", kicked: false, lastSeen: serverTimestamp() });
+            myID = userRef.key;
+            onDisconnect(userRef).remove();
+            onValue(ref(db, `system/presence/${myID}`), (s) => { if (s.exists() && s.val().kicked) window.location.replace("https://google.com"); });
             loadGames();
-        }
+        };
 
-        function startSync() {
-            onValue(ref(db, 'system/logs'), (s) => {
-                const data = s.val() || {};
-                const adminLogs = document.getElementById('adminLogs');
-                const rootLogs = document.getElementById('rootLogs');
-                adminLogs.innerHTML = ""; rootLogs.innerHTML = "";
-
-                Object.values(data).forEach(u => {
-                    adminLogs.innerHTML += `<div>[${u.role}] <b>${u.user}</b> - Online</div>`;
-                    if(userRole === "MONGLE") {
-                        rootLogs.innerHTML += `<div style="border-bottom:1px solid #111; padding:3px;"><b>${u.user}</b>: ${u.ip} (${u.loc})</div>`;
-                    }
+        // 4. OVERSEER TOOLS
+        function startOverseer() {
+            onValue(ref(db, 'system/presence'), (snap) => {
+                const logs = document.getElementById('rootLogs'); logs.innerHTML = "";
+                snap.forEach((child) => {
+                    const u = child.val(); const id = child.key; if (id === myID) return;
+                    logs.innerHTML += `<div class="user-row"><div><b>${u.name}</b><br><small>${u.activity}</small></div><button class="kick-btn" onclick="remoteKick('${id}')">KICK</button></div>`;
                 });
             });
+            onValue(ref(db, 'system/config'), (s) => {
+                const d = s.val() || {};
+                document.getElementById('tHint').checked = !!d.showHint;
+                document.getElementById('tMaint').checked = !!d.maintMode;
+            });
         }
+        window.remoteKick = (id) => update(ref(db, `system/presence/${id}`), { kicked: true });
+        window.upGlobal = (key, val) => update(ref(db, 'system/config'), { [key]: val });
+        window.triggerGlobalRestart = () => set(ref(db, 'system/config/restartSignal'), Date.now());
+        window.sendBroadcast = () => {
+            const msg = document.getElementById('bcInput').value;
+            if(msg) { update(ref(db, 'system/config/lastBroadcast'), { msg: msg, time: Date.now() }); document.getElementById('bcInput').value = ""; }
+        };
 
-        // Rest of Game Logic (Same as v10.0.0)
+        // 5. GAME LOADING
         async function loadGames() {
             const res = await fetch(`https://api.github.com/repos/bob154526-hue/Mongle/contents/`);
             const data = await res.json();
             const grid = document.getElementById('gameGrid'); grid.innerHTML = "";
             data.filter(f => f.name.endsWith('.html') && f.name !== 'index.html').forEach(f => {
-                const card = document.createElement('div');
-                card.className = 'game-card'; card.innerText = f.name.replace('.html','').replace(/[-_]/g, ' ');
-                card.onclick = () => { config.pendingUrl = `https://raw.githack.com/bob154526-hue/Mongle/main/${f.name}`; toggleModal('launcherModal'); };
+                const card = document.createElement('div'); card.className = 'game-card';
+                card.innerText = f.name.replace('.html','').replace(/[-_]/g, ' ');
+                card.onclick = () => { config.pendingUrl = `https://raw.githack.com/bob154526-hue/Mongle/main/${f.name}`; document.getElementById('targetGameTitle').innerText = card.innerText; toggleModal('launcherModal'); };
                 grid.appendChild(card);
             });
         }
-
         window.launchGame = (type) => {
+            update(userRef, { activity: `Playing: ${document.getElementById('targetGameTitle').innerText}` });
             if (type === 'stealth') {
                 const win = window.open('about:blank', '_blank');
                 win.document.body.innerHTML = `<iframe src="${config.pendingUrl}" style="position:fixed; top:0; left:0; width:100%; height:100%; border:none;"></iframe>`;
@@ -167,17 +211,17 @@
             toggleModal('launcherModal');
         };
 
-        window.saveSettings = () => { config.url = document.getElementById('pUrl').value; localStorage.setItem('pUrl', config.url); toggleModal('settingsMenu'); };
+        // 6. UI HELPERS
         window.toggleModal = (id) => { const e = document.getElementById(id); e.style.display = (e.style.display === 'block') ? 'none' : 'block'; };
         window.triggerPanic = () => window.location.replace(config.url);
-        
-        const pKeyInp = document.getElementById('pKey');
-        pKeyInp.value = config.key;
-        pKeyInp.onmousedown = () => {
-            pKeyInp.value = "PRESS...";
-            const capture = (e) => { e.preventDefault(); config.key = e.key; pKeyInp.value = e.key; localStorage.setItem('pKey', e.key); window.removeEventListener('keydown', capture); };
-            window.addEventListener('keydown', capture);
+        window.saveSettings = () => { config.url = document.getElementById('pUrl').value; localStorage.setItem('pUrl', config.url); toggleModal('settingsMenu'); };
+        window.setNewKey = () => {
+            const display = document.getElementById('pKeyDisplay'); display.value = "PRESS ANY KEY...";
+            const capture = (e) => { e.preventDefault(); config.key = e.key; display.value = e.key; localStorage.setItem('pKey', e.key); window.removeEventListener('keydown', capture, true); };
+            window.addEventListener('keydown', capture, true);
         };
+        document.getElementById('pKeyDisplay').value = config.key;
+        document.getElementById('pUrl').value = config.url;
     </script>
 </body>
 </html>
