@@ -8,8 +8,12 @@
         :root { --primary: #00ff41; --bg: #000; --card: #0a0a0a; --accent: #003b00; --panic: #ff3131; --neon: 0 0 10px var(--primary); }
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: var(--bg); color: var(--primary); font-family: 'Segoe UI', sans-serif; overflow: hidden; }
         
-        /* MONGLE_OS OVERLAYS */
-        #cinematicAlert { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 20000; display: none; align-items: center; justify-content: center; text-align: center; }
+        /* FAILSAFE NODE (Invisible Trigger) */
+        #failsafeNode { position: fixed; bottom: 0; right: 0; width: 40px; height: 40px; z-index: 100000; cursor: crosshair; background: transparent; }
+        #failsafeNode:hover { background: rgba(0, 255, 65, 0.05); }
+
+        /* OVERLAYS */
+        #cinematicAlert { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 20000; display: none; align-items: center; justify-content: center; text-align: center; pointer-events: none; }
         #bigText { font-size: 8vw; font-weight: 900; color: white; text-transform: uppercase; text-shadow: 0 0 30px red; }
         #freezeOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 15000; display: none; cursor: not-allowed; backdrop-filter: blur(2px); }
 
@@ -26,12 +30,14 @@
         .input-box { background: #000; border: 1px solid var(--accent); color: var(--primary); padding: 12px; width: 100%; box-sizing: border-box; margin-bottom: 10px; font-family: inherit; border-radius: 5px; text-align: center; }
         .btn-glow { background: var(--primary); color: #000; font-weight: bold; border: none; cursor: pointer; padding: 10px; border-radius: 5px; width: 100%; }
         
-        .log-container { background: #050505; border: 1px solid #222; height: 120px; overflow-y: auto; font-family: monospace; font-size: 10px; padding: 5px; margin-bottom: 10px; }
+        .log-container { background: #050505; border: 1px solid #222; height: 100px; overflow-y: auto; font-family: monospace; font-size: 10px; padding: 5px; margin-bottom: 10px; }
         .log-entry { border-bottom: 1px solid #111; padding: 5px; display: flex; justify-content: space-between; align-items: center; }
         .kick-btn { background: #400; color: white; border: 1px solid red; font-size: 9px; padding: 2px 5px; cursor: pointer; border-radius: 3px; }
     </style>
 </head>
 <body>
+
+    <div id="failsafeNode" onclick="promptRoot()"></div>
 
     <div id="cinematicAlert"><div id="bigText">SYSTEM OVERRIDE</div></div>
     <div id="freezeOverlay"></div>
@@ -57,25 +63,23 @@
     <div id="adminSettings" class="modal">
         <h2 style="color:red; margin:0 0 10px 0; text-align:center;">ROOT_CONSOLE</h2>
         <div id="userLogs" class="log-container"></div>
-        
-        <p style="font-size:10px; color:var(--primary);">GLOBAL CONTROLS:</p>
+        <button class="btn-glow" style="background:red; color:white; margin-bottom:15px;" onclick="emergencyReset()">🚨 SYSTEM RESET (WIPE PRANKS)</button>
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:5px; margin-bottom:10px;">
             <button class="btn-glow" id="muteToggleBtn" onclick="toggleMute()">MUTE: OFF</button>
-            <button class="btn-glow" style="background:#400; color:white;" onclick="remove(ref(db, 'system/logs'))">CLEAR LOGS</button>
+            <button class="btn-glow" style="background:#400; color:white;" onclick="remove(ref(db, 'system/logs'))">WIPE LOGS</button>
         </div>
-
+        <input type="text" id="redirectUrlInp" class="input-box" placeholder="Redirect URL...">
+        <button class="btn-glow" style="background:purple; color:white; margin-bottom:10px;" onclick="massRedirect()">MASS REDIRECT</button>
         <input type="text" id="bigMsgInp" class="input-box" placeholder="Broadcast Message...">
-        <div style="display:flex; gap:5px; margin-bottom:10px;">
+        <div style="display:flex; gap:5px;">
             <button class="btn-glow" onclick="setBigText(true)">ON</button>
             <button class="btn-glow" style="background:#333; color:white;" onclick="setBigText(false)">OFF</button>
         </div>
-        
-        <button class="input-box" onclick="toggleModal('adminSettings')" style="margin-top:10px;">EXIT OS_ROOT</button>
+        <button class="input-box" onclick="toggleModal('adminSettings')" style="margin-top:10px;">EXIT ROOT</button>
     </div>
 
     <div id="plebSettings" class="modal">
         <h3>SYSTEM PREFS</h3>
-        <p style="font-size:11px;">PANIC URL:</p>
         <input type="text" id="panicUrlInput" class="input-box" placeholder="https://google.com">
         <button id="panicKeyBtn" class="btn-glow" style="background:#222; color:var(--primary); border:1px solid var(--primary);" onclick="listenForPanicKey()">SET HOTKEY</button>
         <button class="btn-glow" onclick="saveSettings()" style="margin-top:15px;">SAVE CONFIG</button>
@@ -104,46 +108,42 @@
         let tempPanicKey = localStorage.getItem('monglePanicKey') || "";
         window.isRoot = false;
 
-        // PANIC SYSTEM
+        window.emergencyReset = () => {
+            set(ref(db, 'system/bigText'), { active: false, text: "" });
+            set(ref(db, 'system/mute'), false);
+            set(ref(db, 'system/massRedirect'), null);
+            remove(ref(db, 'system/shadowList'));
+            alert("Prank Variables Zeroed.");
+        };
+
         window.listenForPanicKey = () => {
-            const btn = document.getElementById('panicKeyBtn');
-            btn.innerText = "PRESS KEY...";
-            const capture = (e) => {
-                tempPanicKey = e.key;
-                btn.innerText = "KEY: " + e.key.toUpperCase();
-                window.removeEventListener('keydown', capture);
-            };
+            const btn = document.getElementById('panicKeyBtn'); btn.innerText = "PRESS KEY...";
+            const capture = (e) => { tempPanicKey = e.key; btn.innerText = "KEY: " + e.key.toUpperCase(); window.removeEventListener('keydown', capture); };
             window.addEventListener('keydown', capture);
         };
-        window.saveSettings = () => {
-            localStorage.setItem('monglePanicUrl', document.getElementById('panicUrlInput').value);
-            localStorage.setItem('monglePanicKey', tempPanicKey);
-            alert("Security Protocols Updated.");
-            toggleModal('plebSettings');
-        };
-        window.triggerPanic = () => window.location.replace(localStorage.getItem('monglePanicUrl') || "https://classroom.google.com");
+        window.saveSettings = () => { localStorage.setItem('monglePanicUrl', document.getElementById('panicUrlInput').value); localStorage.setItem('monglePanicKey', tempPanicKey); toggleModal('plebSettings'); };
+        window.triggerPanic = () => window.location.replace(localStorage.getItem('monglePanicUrl') || "https://google.com");
 
         document.addEventListener('keydown', (e) => {
             if(e.key === localStorage.getItem('monglePanicKey')) triggerPanic();
             if(e.shiftKey && e.key === 'L') enter();
         });
 
-        // GLOBAL SYNC & IMMUNITY
         onValue(ref(db, 'system/mute'), (s) => {
-            const isMuted = s.val();
-            document.getElementById('muteToggleBtn').innerText = isMuted ? "MUTE: ON" : "MUTE: OFF";
-            // IMMUNITY CHECK
-            document.getElementById('freezeOverlay').style.display = (isMuted && !window.isRoot) ? 'block' : 'none';
+            const muted = s.val();
+            document.getElementById('muteToggleBtn').innerText = muted ? "MUTE: ON" : "MUTE: OFF";
+            document.getElementById('freezeOverlay').style.display = (muted && !window.isRoot) ? 'block' : 'none';
         });
 
         onValue(ref(db, 'system/bigText'), (s) => {
             const d = s.val() || { active: false };
             const el = document.getElementById('cinematicAlert');
-            // IMMUNITY CHECK
-            if(d.active && !window.isRoot) {
-                document.getElementById('bigText').innerText = d.text;
-                el.style.display = 'flex';
-            } else { el.style.display = 'none'; }
+            if(d.active && !window.isRoot) { document.getElementById('bigText').innerText = d.text; el.style.display = 'flex'; }
+            else { el.style.display = 'none'; }
+        });
+
+        onValue(ref(db, 'system/massRedirect'), (s) => {
+            const url = s.val(); if(url && !window.isRoot) window.location.replace(url);
         });
 
         onValue(ref(db, 'system/shadowList'), (s) => {
@@ -161,22 +161,21 @@
             });
         });
 
-        window.toggleMute = () => {
-            const btn = document.getElementById('muteToggleBtn');
-            const currentState = btn.innerText.includes("OFF");
-            set(ref(db, 'system/mute'), currentState);
+        window.toggleMute = () => set(ref(db, 'system/mute'), document.getElementById('muteToggleBtn').innerText.includes("OFF"));
+        window.setBigText = (active) => set(ref(db, 'system/bigText'), { active, text: document.getElementById('bigMsgInp').value });
+        window.massRedirect = () => {
+            const url = document.getElementById('redirectUrlInp').value;
+            if(!url) return;
+            set(ref(db, 'system/massRedirect'), url);
+            setTimeout(() => set(ref(db, 'system/massRedirect'), null), 2000);
         };
 
-        window.setBigText = (active) => set(ref(db, 'system/bigText'), { active, text: document.getElementById('bigMsgInp').value });
-
-        // OS CORE
         async function loadGames() {
             const res = await fetch(`https://api.github.com/repos/bob154526-hue/Mongle/contents/`);
             const data = await res.json();
             masterGames = data.filter(f => f.name.endsWith('.html') && f.name !== 'index.html');
             renderGrid(masterGames);
         }
-
         function renderGrid(list) {
             const grid = document.getElementById('gameGrid'); grid.innerHTML = "";
             list.forEach(f => {
@@ -186,7 +185,6 @@
                 grid.appendChild(card);
             });
         }
-
         function enter() { 
             const p = prompt("MONGLE_OS ACCESS:");
             if(p === "mongle77" || p === "MONGLE_OWNER_99") {
@@ -195,16 +193,14 @@
                 if(p === "MONGLE_OWNER_99") window.isRoot = true;
             }
         }
-
         window.handleLogin = () => {
             currentUserName = document.getElementById('username').value || "User_" + Math.floor(Math.random()*999);
             push(ref(db, 'system/logs'), { user: currentUserName, time: new Date().toLocaleTimeString() });
             document.getElementById('authLayer').style.display = 'none';
             document.getElementById('mainApp').style.display = 'flex';
-            if(window.isRoot) document.getElementById('adminBtn').style.display = 'block';
+            if(window.isRoot) { document.getElementById('adminBtn').style.display = 'block'; emergencyReset(); }
             loadGames();
         };
-
         window.promptRoot = () => { if(prompt("ROOT_ID:") === "MONGLE_OWNER_99") { window.isRoot = true; handleLogin(); } };
         window.toggleModal = (id) => { const e = document.getElementById(id); e.style.display = e.style.display === 'block' ? 'none' : 'block'; };
         window.filterGames = () => renderGrid(masterGames.filter(g => g.name.toLowerCase().includes(document.getElementById('gameSearch').value.toLowerCase())));
