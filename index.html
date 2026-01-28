@@ -3,87 +3,113 @@
 <head>
     <meta charset="UTF-8">
     <title>404 Not Found</title>
-    <link id="favicon" rel="icon" href="https://ssl.gstatic.com/images/branding/product/1x/drive_2020q4_32dp.png">
     <style>
-        :root { --primary: #00ff41; --bg: #000; --card: #0a0a0a; --accent: #003b00; --panic: #ff3131; --mod: #007bff; --neon: 0 0 10px var(--primary); }
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: var(--bg); color: var(--primary); font-family: 'Consolas', monospace; overflow: hidden; }
+        :root { --primary: #00ff41; --bg: #000; --card: #0a0a0a; --accent: #003b00; --panic: #ff3131; --mod: #007bff; --offline: #444; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #fff; font-family: 'Consolas', monospace; overflow: hidden; transition: background 0.5s; }
         
-        #tosOverlay { position: fixed; inset: 0; background: #000; z-index: 5000000; display: flex; align-items: center; justify-content: center; }
-        .tos-box { background: #080808; border: 1px solid #111; padding: 40px; text-align: center; border-radius: 12px; width: 350px; }
-        
-        #lockdownScreen { position: fixed; inset: 0; background: #fff; z-index: 1000000; display: none; flex-direction: column; align-items: center; justify-content: center; color: #000; font-family: 'Segoe UI', sans-serif; }
-        
-        #mainApp { display: none; height: 100vh; flex-direction: column; }
+        #lockdown { position: fixed; inset: 0; background: #fff; z-index: 10000; display: flex; }
+
+        #mainApp { display: none; height: 100vh; flex-direction: column; background: var(--bg); color: var(--primary); }
         .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; border-bottom: 1px solid var(--accent); background: #050505; }
         
-        /* SEARCH BAR STYLE */
-        .search-bar { background: #000; border: 1px solid var(--accent); color: var(--primary); padding: 8px 15px; border-radius: 20px; font-family: inherit; width: 250px; outline: none; transition: 0.3s; }
-        .search-bar:focus { border-color: var(--primary); box-shadow: var(--neon); }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; padding: 25px; overflow-y: auto; flex-grow: 1; margin-bottom: 75px; }
+        .game-card { background: var(--card); border: 1px solid var(--accent); padding: 20px; border-radius: 4px; text-align: center; cursor: pointer; transition: 0.2s; }
+        .game-card:hover { border-color: var(--primary); box-shadow: 0 0 10px var(--primary); transform: translateY(-2px); }
 
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; padding: 25px; overflow-y: auto; flex-grow: 1; }
-        .game-card { background: var(--card); border: 1px solid var(--accent); padding: 20px; border-radius: 6px; text-align: center; cursor: pointer; transition: 0.2s; }
-        .game-card:hover { border-color: var(--primary); transform: scale(1.02); box-shadow: var(--neon); }
+        /* STEALTH BOTTOM NAV */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; display: flex; justify-content: center; gap: 20px; padding: 15px; background: rgba(0,0,0,0.95); border-top: 1px solid var(--accent); z-index: 1000; }
+        .admin-btn { background: none; border: 1px solid var(--primary); color: var(--primary); padding: 8px 20px; cursor: pointer; font-family: inherit; font-size: 11px; display: none; text-transform: uppercase; font-weight: bold; border-radius: 4px; }
+        .admin-btn:hover { background: var(--primary); color: #000; box-shadow: 0 0 15px var(--primary); }
+        #adminBtn { border-color: var(--mod); color: var(--mod); }
+        #adminBtn:hover { background: var(--mod); color: #fff; box-shadow: 0 0 15px var(--mod); }
 
-        .modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #080808; border: 1px solid var(--primary); padding: 20px; z-index: 150000; width: 450px; border-radius: 8px; }
-        .input-box { background: #000; border: 1px solid var(--accent); color: var(--primary); padding: 10px; width: 100%; box-sizing: border-box; margin-bottom: 8px; border-radius: 4px; text-align: center; font-family: inherit; }
-        .btn-glow { background: var(--primary); color: #000; border: none; padding: 10px; cursor: pointer; width: 100%; font-weight: bold; margin-top: 5px; }
+        /* MODALS & INTEL */
+        .modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #080808; border: 1px solid var(--primary); padding: 20px; z-index: 15000; width: 400px; border-radius: 8px; box-shadow: 0 0 30px #000; }
+        .input-box { background: #000; border: 1px solid var(--accent); color: var(--primary); padding: 10px; width: 100%; box-sizing: border-box; margin-bottom: 10px; text-align: center; font-family: inherit; font-size: 12px; border-radius: 4px; }
         
-        .chaos { animation: shake 0.1s infinite; filter: invert(1); }
-        @keyframes shake { 0% { transform: translate(2px, 2px); } 50% { transform: translate(-2px, -2px); } }
+        .list-box { background: #000; height: 180px; overflow-y: auto; border: 1px solid #111; padding: 10px; font-size: 12px; margin-bottom: 10px; border-radius: 4px; }
+        .user-entry { padding: 8px; border-bottom: 1px solid #111; cursor: pointer; display: flex; align-items: center; transition: 0.2s; }
+        .user-entry:hover { background: #111; border-color: var(--primary); }
+        
+        .status-dot { height: 8px; width: 8px; border-radius: 50%; margin-right: 10px; }
+        .online { background: var(--primary); box-shadow: 0 0 5px var(--primary); }
+        .offline { background: var(--offline); }
+
+        #targetIntel { border: 1px solid #222; background: #050505; padding: 10px; border-radius: 4px; margin-top: 5px; animation: slideIn 0.3s ease-out; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
-<body id="masterBody">
+<body>
 
-    <div id="tosOverlay">
-        <div class="tos-box">
-            <h2 style="color:white; margin-top:0;">MONGLE_OS</h2>
-            <input type="text" id="plebUserInp" class="input-box" placeholder="Enter Username...">
-            <button class="btn-glow" onclick="plebLogin()">INITIALIZE</button>
-        </div>
-    </div>
-
-    <div id="lockdownScreen">
-        <h1 style="font-size: 100px; margin: 0;">404</h1>
-        <p>The requested URL was not found on this server.</p>
-    </div>
+    <div id="lockdown"></div>
 
     <div id="mainApp">
         <div class="top-bar">
-            <div style="font-weight:900; color:white;">MONGLE_OS <span id="roleLabel" style="color:var(--primary); font-size:10px; margin-left:10px;"></span></div>
-            
-            <input type="text" id="gameSearch" class="search-bar" placeholder="SEARCH_FILES..." onkeyup="filterGames()">
+            <div style="font-weight:900; letter-spacing: 2px;">MONGLE_OS <span id="roleLabel" style="font-size:10px; color:var(--primary); margin-left:10px;"></span></div>
+            <button onclick="toggleModal('settings')" style="background:none; border:1px solid #222; color:#444; cursor:pointer; font-family:inherit; font-size:10px; border-radius:4px;">SETTINGS</button>
+        </div>
+        
+        <div class="grid" id="gameGrid"></div>
+        
+        <div class="bottom-nav">
+            <button id="adminBtn" class="admin-btn" onclick="toggleModal('adminHub')">ENFORCER HUB</button>
+            <button id="rootBtn" class="admin-btn" onclick="toggleModal('rootHub')">MONGLE CORE</button>
+        </div>
+    </div>
 
+    <div id="adminHub" class="modal" style="border-color: var(--mod);">
+        <h3 style="color:var(--mod); margin-top:0; font-size:14px;">LIVE ENFORCEMENT</h3>
+        <div id="userList" class="list-box"></div>
+        
+        <div id="targetIntel" style="display:none;">
+            <div style="font-size:10px; color:#555; margin-bottom:10px;">TARGETING: <span id="targetName" style="color:#fff;">NONE</span></div>
             <div style="display:flex; gap:10px;">
-                <button id="setBtn" class="input-box" style="width:auto; margin:0; border-color:#333;" onclick="toggleModal('settingsMenu')">SETTINGS</button>
-                <button id="adminBtn" class="input-box" style="display:none; width:auto; border-color:var(--mod); color:var(--mod); margin:0;" onclick="toggleModal('adminHub')">ENFORCER</button>
-                <button id="rootBtn" class="input-box" style="display:none; width:auto; border-color:var(--primary); color:var(--primary); margin:0;" onclick="toggleModal('rootHub')">MONGLE_CORE</button>
-                <button class="input-box" style="background:var(--panic); color:white; border:none; width:auto; margin:0;" onclick="triggerPanic()">PANIC</button>
+                <button class="input-box" style="margin:0; border-color:var(--panic); color:var(--panic); cursor:pointer;" onclick="fireAction('panic')">FORCE PANIC</button>
+                <button class="input-box" style="margin:0; border-color:#fff; color:#fff; cursor:pointer;" onclick="fireAction('kick')">KICK USER</button>
             </div>
         </div>
-        <div class="grid" id="gameGrid"></div>
+        <button class="input-box" onclick="toggleModal('adminHub')" style="margin-top:10px; border-color:#222;">BACK</button>
+    </div>
+
+    <div id="rootHub" class="modal">
+        <h3 style="color:var(--primary); margin-top:0; font-size:14px;">MONGLE_CORE_v7.5</h3>
+        <button id="maintBtn" class="input-box" style="border-color:orange; cursor:pointer;" onclick="toggleMaint()">MAINTENANCE: OFF</button>
+        <button class="input-box" style="background:var(--panic); color:white; border:none; font-weight:bold; cursor:pointer;" onclick="triggerNuke()">☢ INITIALIZE NUKE ☢</button>
+        <button class="input-box" onclick="toggleModal('rootHub')" style="margin-top:10px; border-color:#222;">BACK</button>
+    </div>
+
+    <div id="settings" class="modal">
+        <h3>PREFERENCES</h3>
+        <p style="font-size:11px;">CURRENT PANIC KEY: <span id="currentKey" style="color:white; font-weight:bold;">Q</span></p>
+        <button id="keySetter" class="input-box" onclick="startKeyLog()" style="cursor:pointer; border-color:var(--primary);">RECORD NEW KEY</button>
+        <button class="input-box" style="border:none; color:#333;" onclick="toggleModal('settings')">CLOSE</button>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, onValue, set, push, remove, update, onDisconnect } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, onValue, set, push, remove, onDisconnect, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         const firebaseConfig = { apiKey: "AIzaSyDgRvxKypPsOx379SNleE6Uij7mKkEJxGY", databaseURL: "https://monglearcade-default-rtdb.firebaseio.com", projectId: "monglearcade" };
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        let userRole = "GUEST", currentUserName = "", userRef = null, selectedTarget = null;
-        let config = { url: localStorage.getItem('pUrl') || 'https://google.com', key: localStorage.getItem('pKey') || 'q' };
+        let userRole = "GUEST", currentUserName = "User_" + Math.floor(Math.random() * 9999);
+        let pKey = localStorage.getItem('pKey') || 'q', isLogging = false, isMaint = false, selectedTarget = null;
+        
+        document.getElementById('currentKey').innerText = pKey.toUpperCase();
 
-        window.plebLogin = () => {
-            currentUserName = document.getElementById('plebUserInp').value || "Anon";
-            document.getElementById('tosOverlay').style.display = 'none';
-            document.getElementById('mainApp').style.display = 'flex';
-            userRole = "PLEB";
-            setupSession();
-        };
-
+        // KEY LISTENERS
         document.addEventListener('keydown', (e) => {
-            if(e.key === config.key) window.location.replace(config.url);
+            if(isLogging) {
+                pKey = e.key.toLowerCase();
+                localStorage.setItem('pKey', pKey);
+                document.getElementById('currentKey').innerText = pKey.toUpperCase();
+                isLogging = false;
+                document.getElementById('keySetter').innerText = "KEY CAPTURED";
+                setTimeout(()=> document.getElementById('keySetter').innerText = "RECORD NEW KEY", 1500);
+                return;
+            }
+            if(e.key.toLowerCase() === pKey) window.location.replace("https://google.com");
             if(e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 'l') {
                 const k = prompt("AUTH_KEY:");
                 if(k === "MONGLE_OWNER_99") upgrade("MONGLE");
@@ -94,9 +120,73 @@
         function upgrade(role) {
             userRole = role;
             document.getElementById('roleLabel').innerText = `[${role}]`;
+            document.getElementById('lockdown').style.display = 'none';
+            document.getElementById('mainApp').style.display = 'flex';
             document.getElementById('adminBtn').style.display = (role === "ADMIN" || role === "MONGLE") ? 'block' : 'none';
             document.getElementById('rootBtn').style.display = (role === "MONGLE") ? 'block' : 'none';
+            
+            const myStatusRef = ref(db, 'system/users/' + currentUserName);
+            set(myStatusRef, { name: currentUserName, role: userRole, status: "online" });
+            onDisconnect(myStatusRef).update({ status: "offline" });
+            
+            startSync();
+            loadGames();
         }
+
+        function startSync() {
+            // Maintenance logic
+            onValue(ref(db, 'system/config/maintenance'), (s) => {
+                isMaint = s.val() || false;
+                document.getElementById('maintBtn').innerText = `MAINTENANCE: ${isMaint ? 'ON' : 'OFF'}`;
+                if(isMaint && userRole !== "MONGLE") window.location.reload();
+            });
+
+            // Incoming Actions (Panic/Nuke)
+            onValue(ref(db, 'system/actions/' + currentUserName), (s) => {
+                if(s.val()) window.location.replace("https://google.com");
+            });
+
+            // Global Nuke Listener
+            onValue(ref(db, 'system/config/nuke'), (s) => {
+                if(s.val() === true && userRole !== "MONGLE") window.location.replace("https://google.com");
+            });
+
+            // Live Enforcer List
+            onValue(ref(db, 'system/users'), (s) => {
+                const list = document.getElementById('userList');
+                list.innerHTML = "";
+                s.forEach(u => {
+                    const data = u.val();
+                    const div = document.createElement('div');
+                    div.className = 'user-entry';
+                    div.onclick = () => setTarget(data.name);
+                    const dotClass = data.status === "online" ? "online" : "offline";
+                    div.innerHTML = `<span class="status-dot ${dotClass}"></span>${data.name} <span style="margin-left:auto; color:#333; font-size:9px;">${data.role}</span>`;
+                    list.appendChild(div);
+                });
+            });
+        }
+
+        window.setTarget = (name) => {
+            selectedTarget = name;
+            document.getElementById('targetName').innerText = name;
+            document.getElementById('targetIntel').style.display = 'block';
+        };
+
+        window.fireAction = (type) => {
+            if(selectedTarget) set(ref(db, 'system/actions/' + selectedTarget), type);
+        };
+
+        window.triggerNuke = () => {
+            if(confirm("☢ WARNING: This will eject EVERY active user. Proceed?")) {
+                set(ref(db, 'system/config/nuke'), true);
+                setTimeout(() => set(ref(db, 'system/config/nuke'), false), 3000);
+            }
+        };
+
+        window.toggleMaint = () => { if(userRole === "MONGLE") set(ref(db, 'system/config/maintenance'), !isMaint); };
+        window.startKeyLog = () => { isLogging = true; document.getElementById('keySetter').innerText = "LISTENING..."; };
+        window.toggleModal = (id) => { const e = document.getElementById(id); e.style.display = (e.style.display === 'block') ? 'none' : 'block'; };
 
         async function loadGames() {
             const res = await fetch(`https://api.github.com/repos/bob154526-hue/Mongle/contents/`);
@@ -104,24 +194,12 @@
             const grid = document.getElementById('gameGrid'); grid.innerHTML = "";
             data.filter(f => f.name.endsWith('.html') && f.name !== 'index.html').forEach(f => {
                 const card = document.createElement('div');
-                card.className = 'game-card'; 
-                card.dataset.name = f.name.toLowerCase();
+                card.className = 'game-card';
                 card.innerText = f.name.replace('.html','').replace(/[-_]/g, ' ');
                 card.onclick = () => window.open(`https://raw.githack.com/bob154526-hue/Mongle/main/${f.name}`, '_blank');
                 grid.appendChild(card);
             });
         }
-
-        window.filterGames = () => {
-            let val = document.getElementById('gameSearch').value.toLowerCase();
-            document.querySelectorAll('.game-card').forEach(card => {
-                card.style.display = card.dataset.name.includes(val) ? "block" : "none";
-            });
-        };
-
-        window.toggleModal = (id) => { const e = document.getElementById(id); e.style.display = (e.style.display === 'block') ? 'none' : 'block'; };
-        window.triggerPanic = () => window.location.replace(config.url);
-        // ... (remaining session and prank logic)
     </script>
 </body>
 </html>
