@@ -191,7 +191,7 @@
 
         window.door = (type) => {
             if(type === 'admin') {
-                if(prompt("AUTH_CODE:") === "MONGLE_OWNER_99") { isAdmin = true; document.getElementById('adminBtn').style.display="block"; document.getElementById('badge').innerText="[OVERSEER]"; initSession(); }
+                if(prompt("AUTH_CODE:") === "BALLS_ARE_GOOD") { isAdmin = true; document.getElementById('adminBtn').style.display="block"; document.getElementById('badge').innerText="[OVERSEER]"; initSession(); }
             } else { document.getElementById('loginOverlay').style.display = 'flex'; }
         };
 
@@ -238,6 +238,7 @@
                 if(d.msg) { alert("ADMIN: " + d.msg); update(userRef, {msg: null}); }
                 
                 if(d.speak) {
+                    
                     const u = new SpeechSynthesisUtterance(d.speak);
                     window.speechSynthesis.speak(u);
                     update(userRef, {speak: null});
