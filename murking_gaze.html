@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Lurking Gaze | Mongle</title>
+    <style>
+        body { margin:0; overflow:hidden; background:#000; font-family:'Courier New',monospace; color:#f22; }
+        canvas { display:block; }
+        
+        /* High Z-Index to ensure it's clickable */
+        #title, #death { 
+            position:fixed; inset:0; background:rgba(0,0,0,0.95); 
+            display:flex; flex-direction:column; justify-content:center; 
+            align-items:center; text-align:center; z-index:99999; 
+            cursor:pointer;
+        }
+        
+        #title h1 { font-size:4rem; letter-spacing:0.2em; text-shadow:0 0 20px #800; margin-bottom:10px; }
+        #title p { color:#888; margin: 5px; }
+        
+        #ui { position:fixed; top:20px; left:50%; transform:translateX(-50%); z-index:1000; pointer-events:none; text-align:center; }
+        #sanityBar { width:300px; height:20px; background:#111; border:2px solid #600; margin-top:5px; }
+        #sanityFill { height:100%; background:#c00; width:100%; transition: width 0.1s; }
+        
+        button { background:#600; color:white; border:none; padding:15px 30px; font-family:inherit; cursor:pointer; margin-top:20px; }
+        button:hover { background:#a00; }
+    </style>
+</head>
+<body>
+
+<div id="title">
+    <h1>LURKING GAZE</h1>
+    <p id="statusMsg">INITIALIZING ENGINE...</p>
+    <p style="font-size:0.8rem; color:#444;">(If it gets stuck, refresh the page)</p>
+</div>
+
+<div id="death" style="display:none;">
+    <h1 style="color:red;">THE GAZE CONSUMES</h1>
+    <button onclick="location.reload()">RETRY</button>
+</div>
+
+<div id="ui">
+    SANITY
+    <div id="sanityBar"><div id="sanityFill"></div></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/controls/PointerLockControls.js"></script>
+
+<script>
+let scene, camera, renderer, controls;
+let gameStarted = false;
+let move = { f: false, b: false, l: false, r: false };
+let sanity = 100;
+let lastTime = performance.now();
+
+const title = document.getElementById('title');
+const statusMsg = document.getElementById('statusMsg');
+const sanityFill = document.getElementById('sanityFill');
+
+function init() {
+    try {
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x020202);
+        scene.fog = new THREE.FogExp2(0x020202, 0.05);
+
+        camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        
+        renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Check if controls loaded
+        if (typeof THREE.PointerLockControls === 'undefined') {
+            statusMsg.innerText = "LINK ERROR: Refreshing recommended.";
+        }
+
+        controls = new THREE.PointerLockControls(camera, document.body);
+        scene.add(controls.getObject());
+        camera.position.set(0, 1.6, 5);
+
+        // Lighting
+        const light = new THREE.PointLight(0xff4400, 2, 15);
+        camera.add(light);
+        scene.add(new THREE.AmbientLight(0x202020));
+
+        // World
+        const floor = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), new THREE.MeshStandardMaterial({ color: 0x111111 }));
+        floor.rotation.x = -Math.PI/2;
+        scene.add(floor);
+
+        for(let i=0; i<20; i++) {
+            const wall = new THREE.Mesh(new THREE.BoxGeometry(2, 6, 2), new THREE.MeshStandardMaterial({ color: 0x080808 }));
+            wall.position.set((Math.random()-0.5)*60, 3, (Math.random()-0.5)*60);
+            scene.add(wall);
+        }
+
+        statusMsg.innerText = "CLICK TO START";
+        
+        // CLICK HANDLER
+        title.addEventListener('click', () => {
+            title.style.display = 'none';
+            gameStarted = true;
+            controls.lock(); // Try to lock mouse
+        });
+
+        animate();
+    } catch (e) {
+        statusMsg.innerText = "CRITICAL ERROR: " + e.message;
+    }
+}
+
+// Input Handling
+const onKeyDown = (e) => {
+    if(e.code === 'KeyW' || e.code === 'ArrowUp') move.f = true;
+    if(e.code === 'KeyS' || e.code === 'ArrowDown') move.b = true;
+    if(e.code === 'KeyA' || e.code === 'ArrowLeft') move.l = true;
+    if(e.code === 'KeyD' || e.code === 'ArrowRight') move.r = true;
+};
+const onKeyUp = (e) => {
+    if(e.code === 'KeyW' || e.code === 'ArrowUp') move.f = false;
+    if(e.code === 'KeyS' || e.code === 'ArrowDown') move.b = false;
+    if(e.code === 'KeyA' || e.code === 'ArrowLeft') move.l = false;
+    if(e.code === 'KeyD' || e.code === 'ArrowRight') move.r = false;
+};
+document.addEventListener('keydown', onKeyDown);
+document.addEventListener('keyup', onKeyUp);
+
+function animate() {
+    requestAnimationFrame(animate);
+    const time = performance.now();
+    const delta = (time - lastTime) / 1000;
+    lastTime = time;
+
+    if (gameStarted) {
+        const speed = 10 * delta;
+        // Move regardless of pointer lock for better compatibility
+        if (move.f) controls.moveForward(speed);
+        if (move.b) controls.moveForward(-speed);
+        if (move.l) controls.moveRight(-speed);
+        if (move.r) controls.moveRight(speed);
+
+        sanity -= 1 * delta;
+        sanityFill.style.width = Math.max(0, sanity) + "%";
+
+        if (sanity <= 0) {
+            gameStarted = false;
+            document.getElementById('death').style.display = 'flex';
+        }
+    }
+    renderer.render(scene, camera);
+}
+
+window.onload = init;
+
+window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
+</body>
+</html>
