@@ -3,140 +3,163 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MONGLE_DEBUG_ENV</title>
+    <title>MONGLE_STRESS_TEST</title>
     <style>
-        :root { --matrix: #00ff41; --bg: #050505; }
-        body { margin: 0; background: var(--bg); color: var(--matrix); font-family: 'Courier New', monospace; overflow: hidden; touch-action: none; }
-        canvas { display: block; image-rendering: pixelated; }
+        :root { --matrix: #00ff41; --bg: #050505; --log-bg: rgba(0, 10, 0, 0.9); --warn: #ffae00; }
+        body { margin: 0; background: var(--bg); color: var(--matrix); font-family: 'Consolas', monospace; overflow: hidden; touch-action: none; }
+        canvas { display: block; }
         
-        /* Debug Overlay */
         #debug-panel {
-            position: fixed; top: 10px; right: 10px; width: 200px;
-            background: rgba(0, 20, 0, 0.8); border: 1px solid var(--matrix);
-            padding: 10px; font-size: 11px; pointer-events: none; z-index: 100;
+            position: fixed; top: 10px; left: 10px; width: 200px;
+            background: var(--log-bg); border: 1px solid var(--matrix);
+            padding: 10px; font-size: 11px; z-index: 100;
         }
+
+        #log-panel {
+            position: fixed; bottom: 10px; right: 10px; width: 300px; height: 180px;
+            background: var(--log-bg); border: 1px solid #004400;
+            padding: 8px; font-size: 10px; overflow: hidden; display: flex; flex-direction: column-reverse;
+            z-index: 100;
+        }
+
+        .log-entry { margin-bottom: 2px; border-left: 2px solid var(--matrix); padding-left: 5px; }
+        .log-warn { border-left-color: var(--warn); color: var(--warn); font-weight: bold; }
+
         .stat { display: flex; justify-content: space-between; margin-bottom: 4px; }
         .stat b { color: #fff; }
 
-        /* Controls Tip */
-        #hint { position: fixed; bottom: 10px; left: 10px; font-size: 10px; opacity: 0.6; }
+        /* Stress Button */
+        #stress-btn {
+            width: 100%; margin-top: 10px; background: #900; color: #fff; 
+            border: 1px solid #f00; padding: 5px; cursor: pointer; font-family: monospace;
+            font-weight: bold; font-size: 10px; transition: 0.2s;
+        }
+        #stress-btn:hover { background: #f00; }
     </style>
 </head>
 <body>
 
     <div id="debug-panel">
         <div class="stat"><span>FPS:</span><b id="fps">0</b></div>
-        <div class="stat"><span>X:</span><b id="posX">0</b></div>
-        <div class="stat"><span>Y:</span><b id="posY">0</b></div>
-        <div class="stat"><span>ENTITIES:</span><b id="entCount">0</b></div>
-        <div class="stat"><span>STATE:</span><b id="gameState">BOOTING</b></div>
+        <div class="stat"><span>MEM_LOAD:</span><b id="entCount">0</b></div>
+        <div class="stat"><span>ENGINE:</span><b id="engState">STABLE</b></div>
+        <button id="stress-btn" onclick="injectChaos()">INJECT 100 ENTITIES</button>
+        <button id="stress-btn" style="background:#222; border-color:#444;" onclick="purgeMem()">PURGE MEMORY</button>
     </div>
 
-    <div id="hint">TAP/CLICK TO REPEL | MONGLE_V4_DEBUG</div>
+    <div id="log-panel">
+        <div class="log-entry">[ SYSTEM ] Lockdown Checkpoint Active.</div>
+    </div>
+
     <canvas id="gameCanvas"></canvas>
 
 <script>
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
+    const logPanel = document.getElementById('log-panel');
     
-    // Debug Refs
     const ui = {
         fps: document.getElementById('fps'),
-        x: document.getElementById('posX'),
-        y: document.getElementById('posY'),
         ents: document.getElementById('entCount'),
-        state: document.getElementById('gameState')
+        state: document.getElementById('engState')
     };
 
     let entities = [];
     let lastTime = 0;
-    const player = { x: 0, y: 0, r: 20, active: false };
+    const player = { x: window.innerWidth/2, y: window.innerHeight/2, r: 25, active: false };
+
+    function pushLog(msg, isWarn = false) {
+        const entry = document.createElement('div');
+        entry.className = 'log-entry' + (isWarn ? ' log-warn' : '');
+        entry.innerText = `[${new Date().toLocaleTimeString().split(' ')[0]}] ${msg}`;
+        logPanel.prepend(entry);
+        if(logPanel.children.length > 15) logPanel.lastChild.remove();
+    }
 
     function init() {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
-        player.x = canvas.width / 2;
-        player.y = canvas.height / 2;
-        ui.state.innerText = "RUNNING";
-        spawnEntities(15);
+        pushLog(`Init Environment: ${canvas.width}x${canvas.height}`);
     }
 
-    function spawnEntities(n) {
-        for(let i=0; i<n; i++) {
+    window.injectChaos = () => {
+        for(let i=0; i<100; i++) {
             entities.push({
                 x: Math.random() * canvas.width,
                 y: Math.random() * canvas.height,
-                vx: (Math.random() - 0.5) * 2,
-                vy: (Math.random() - 0.5) * 2,
-                r: Math.random() * 5 + 2
+                vx: (Math.random() - 0.5) * 10,
+                vy: (Math.random() - 0.5) * 10,
+                r: Math.random() * 4 + 1,
+                c: `hsl(${Math.random() * 360}, 100%, 50%)`
             });
         }
-    }
-
-    // Input Handling
-    const handleInput = (e) => {
-        const t = e.touches ? e.touches[0] : e;
-        player.x = t.clientX;
-        player.y = t.clientY;
-        player.active = true;
+        pushLog(`ALERT: 100 Entities Injected.`, true);
     };
 
-    window.addEventListener('mousemove', handleInput);
-    window.addEventListener('touchstart', handleInput);
-    window.addEventListener('touchend', () => player.active = false);
+    window.purgeMem = () => {
+        entities = [];
+        pushLog("MEMORY PURGE COMPLETE.");
+    };
+
+    window.addEventListener('mousemove', (e) => { 
+        player.x = e.clientX; player.y = e.clientY; player.active = true; 
+    });
 
     function update(deltaTime) {
-        entities.forEach(ent => {
+        const currentFps = Math.round(1000 / deltaTime) || 0;
+        ui.fps.innerText = currentFps;
+        ui.ents.innerText = entities.length;
+
+        // Visual warning if FPS drops
+        if(currentFps < 30 && entities.length > 0) {
+            ui.state.innerText = "CRITICAL";
+            ui.state.style.color = "red";
+        } else {
+            ui.state.innerText = "STABLE";
+            ui.state.style.color = "#00ff41";
+        }
+
+        for(let i = entities.length - 1; i >= 0; i--) {
+            let ent = entities[i];
             ent.x += ent.vx;
             ent.y += ent.vy;
 
-            // Bounce walls
             if(ent.x < 0 || ent.x > canvas.width) ent.vx *= -1;
             if(ent.y < 0 || ent.y > canvas.height) ent.vy *= -1;
 
-            // Debug Interaction: Repel from player
-            if(player.active) {
-                const dx = ent.x - player.x;
-                const dy = ent.y - player.y;
-                const dist = Math.sqrt(dx*dx + dy*dy);
-                if(dist < 100) {
-                    ent.vx += dx * 0.01;
-                    ent.vy += dy * 0.01;
-                }
-            }
-        });
+            // Player "Vacuum" Effect
+            const dx = ent.x - player.x;
+            const dy = ent.y - player.y;
+            const dist = Math.sqrt(dx*dx + dy*dy);
 
-        // Update Debug UI
-        ui.fps.innerText = Math.round(1000 / deltaTime);
-        ui.x.innerText = Math.floor(player.x);
-        ui.y.innerText = Math.floor(player.y);
-        ui.ents.innerText = entities.length;
+            if(dist < player.r) {
+                entities.splice(i, 1);
+                if(entities.length % 10 === 0) pushLog(`Consumed 10 Units`);
+            }
+        }
     }
 
     function draw() {
-        ctx.fillStyle = '#050505';
+        ctx.fillStyle = 'rgba(5, 5, 5, 0.3)'; // Trail effect
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Draw Player Mongle
-        ctx.strokeStyle = player.active ? '#fff' : '#00ff41';
+        // Draw Player
+        ctx.strokeStyle = '#fff';
         ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.arc(player.x, player.y, player.r, 0, Math.PI * 2);
+        ctx.arc(player.x, player.y, player.r, 0, 7);
         ctx.stroke();
 
-        // Draw Entities
-        ctx.fillStyle = '#00ff41';
+        // Draw Chaos
         entities.forEach(ent => {
-            ctx.beginPath();
-            ctx.arc(ent.x, ent.y, ent.r, 0, Math.PI * 2);
-            ctx.fill();
+            ctx.fillStyle = ent.c;
+            ctx.fillRect(ent.x, ent.y, ent.r, ent.r);
         });
     }
 
     function loop(timestamp) {
         const deltaTime = timestamp - lastTime;
         lastTime = timestamp;
-
         update(deltaTime);
         draw();
         requestAnimationFrame(loop);
